@@ -113,7 +113,7 @@ option_list <- list(
               help = "Sample size"),
   make_option("--k", type = "numeric", default = 400,
               help = "Portion related to k"),
-  make_option("--p", type = "character", default = "low",
+  make_option("--p", type = "character", default = "high",
               help = "Probability corresponding to quantile,
               choices are 'low', 'medium' and 'high'"),
   make_option("--gamma", type = "numeric", default = 1,
@@ -131,7 +131,7 @@ if (NA %in% opt) {
 
 # Set parameter values
 p <- switch(opt$p,
-            low = 1 / 2000,
+            low = 1 / 1000,
             medium = 1 / 5000,
             high = 1 / 10000,
             stop("Invalid value of 'p'."))
