@@ -11,20 +11,19 @@ on the extreme quantile region estimator proposed in the article.
 
 ## Running the simulation
 
-1. Clone or unzip the repository, e.g,
+1. Clone or unzip the repository.
 
 ```
 git clone https://github.com/perej1/elliptical-sim.git
 ```
 
-2. Install required packages by navigating to the project's root, and then, by
-   running the following R command
+2. Install required packages by running the following R command in the project's
+   root folder.
 
 ```
-# install.packages("renv")
 renv::restore()
 ```
-3. Lastly, run simulations with
+3. Run simulations.
 
 ```
 bash plot-batch.sh
