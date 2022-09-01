@@ -1,9 +1,9 @@
 # elliptical-sim
 
 Simulated data examples for an article about multivariate extreme quantile
-region estimation. Simulations produce figures of the following form
+region estimation. Simulations produce figures of the following form.
 
-![image](figures/fig-n_5000-k_400-p_high-gamma_1.00.eps)
+![image](figures/fig-n_5000-k_400-p_low-gamma_1.00.png)
 
 In above figure $Q_p$ denotes the true $(1-p)$-quantile region, $\bar Q_p$
 denotes estimate based on sample quantile and $\hat Q_p$ denotes estimate based
