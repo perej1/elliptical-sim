@@ -1,6 +1,6 @@
 *.swp
 *.Rhistory
 renv/library/
-settings.dcf
+renv/settings.dcf
 .Rproj.user
 arg.txt
