@@ -4,31 +4,41 @@ library(ggforce)
 library(latex2exp)
 library(optparse)
 
-#' Calculate angle between two vectors
-#' @param a A vector
-#' @param b A vector
-#' @return Angle as radians
+###############################################################################
+#                                                                             #
+#                           HELPER FUNCTIONS                                  #
+#                                                                             #
+###############################################################################
+
+#' Calculate Angle Between Two Vectors
+#' 
+#' @param a A vector.
+#' @param b A vector.
+#' 
+#' @return Angle as radians.
 angle <- function(a, b) {
   acos(sum(a * b) / (norm(a, type = "2") * norm(b, type = "2")))
 }
 
-#' Calculate semiaxes lengths and rotation angle of ellipse of
-#' form x^T \Sigma x = 1
-#' @param mu a d-dimensional location of the ellipse
-#' @param sigma inverted matrix corresponding to ellipse
-#' @return vector of axis lengths, location and angle with respect to
-#' positive x-axis
+#' Calculate Semiaxes Lengths and Rotation Angle of an Ellipse
+#' 
+#' It is assumed that ellipse is given in the form \eqn{x^T \Sigma x = 1}.
+#'
+#' @param mu A d-dimensional location of the ellipse.
+#' @param sigma Inverted matrix corresponding to ellipse.
+#' @return Vector of axis lengths, location and angle with respect to
+#'   positive x-axis.
 ellipse_to_vector <- function(mu, sigma) {
   # eigenvalues and eigenvectors
   decomp <- eigen(sigma)
   lambda <- decomp$values
   v <- decomp$vectors
-  
+
   # lengths of the semiaxes
   semiaxes <- 1 / sqrt(lambda)
   # direction of major axis
   v_major  <- as.vector(v[, 2])
-  
+
   # angle between major axis and x-axis
   theta <- angle(v_major, c(1, 0))
   if (v_major[2] < 0) {
@@ -38,6 +48,14 @@ ellipse_to_vector <- function(mu, sigma) {
 }
 
 
+#' Plot and Save Figure
+#'
+#' @param tsample Sample from t-distribution.
+#' @param q Theoretical quantile region.
+#' @param qbar Sample quantile region.
+#' @param qhat Extreme quantile region.
+#'
+#' @return Nothing.
 plot_ellipse <- function(tsample, q, qbar, qhat) {
   # Reshape data for ggplot
   q_v <- ellipse_to_vector(q$location, q$scale^(-2) * solve(q$scatter))
@@ -50,7 +68,7 @@ plot_ellipse <- function(tsample, q, qbar, qhat) {
                      b = data[, 4], theta = data[, 5],
                      type = c("real", "bar", "hat"))
   tdf <- data.frame(x = tsample[, 1], y = tsample[, 2])
-  
+
   # Plotting
   dir.create("figures", showWarnings = FALSE)
   f <- sprintf("%s/fig-n_%d-k_%d-p_%s-gamma_%.2f.png", "figures", opt$n,
@@ -75,7 +93,7 @@ plot_ellipse <- function(tsample, q, qbar, qhat) {
                                      TeX("$\\hat{Q}_p$"),
                                      TeX("$\\bar{Q}_p$")))
   ggsave(f, width = 7, height = 7)
-} 
+}
 
 
 ###############################################################################
