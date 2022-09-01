@@ -9,18 +9,23 @@ In above figure $Q_p$ denotes the true $(1-p)$-quantile region, $\bar Q_p$
 denotes estimate based on sample quantile and $\hat Q_p$ denotes estimate based
 on the extreme quantile region estimator proposed in the article.
 
-## Prequisites
-
-R packages needed for running the simulations can be found on file `renv.lock`.
-Notice that the package *extreme* can be only installed from the corresponding
-Github repository with
-```
-devtools::install_github("perej1/extreme")
-```
-
 ## Running the simulation
 
-Run the following on bash command line
+1. Clone or unzip the repository, e.g,
+
+```
+git clone https://github.com/perej1/extreme.git
+```
+
+2. Install required packages by navigating to the project's root, and then, by
+   running the following R command
+
+```
+# install.packages("renv")
+renv::restore()
+```
+3. Lastly, run simulations with
+
 ```
 bash plot-batch.sh
 ```
