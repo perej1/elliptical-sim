@@ -29,5 +29,5 @@ renv::restore()
 bash plot-batch.sh
 ```
 
-As an result a folder `figures` will be generated (if it does not already
+As a result, a folder `figures` will be generated (if it does not already
 exist). The folder includes generated figures.
