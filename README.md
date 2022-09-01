@@ -14,7 +14,7 @@ on the extreme quantile region estimator proposed in the article.
 1. Clone or unzip the repository, e.g,
 
 ```
-git clone https://github.com/perej1/extreme.git
+git clone https://github.com/perej1/elliptical-sim.git
 ```
 
 2. Install required packages by navigating to the project's root, and then, by
