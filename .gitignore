@@ -1,4 +1,4 @@
-*swp
+*.swp
 *.Rhistory
 renv/library/
 settings.dcf

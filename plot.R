@@ -24,7 +24,7 @@ ellipse_to_vector <- function(mu, sigma) {
   lambda <- decomp$values
   v <- decomp$vectors
   
-  # lengths of the semiaxes.
+  # lengths of the semiaxes
   semiaxes <- 1 / sqrt(lambda)
   # direction of major axis
   v_major  <- as.vector(v[, 2])
@@ -52,10 +52,10 @@ plot_ellipse <- function(tsample, q, qbar, qhat) {
   tdf <- data.frame(x = tsample[, 1], y = tsample[, 2])
   
   # Plotting
-  f <- sprintf("%sfig-n_%d-k_%d-p_%s-gamma_%.2f.pdf", opt$path, opt$n,
+  dir.create("figures", showWarnings = FALSE)
+  f <- sprintf("%s/fig-n_%d-k_%d-p_%s-gamma_%.2f.pdf", "figures", opt$n,
                opt$k, opt$p, opt$gamma)
-  pdf(f)
-  ggfig <- ggplot(data) +
+  ggplot(data) +
     geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b, angle = theta,
                      linetype = type), key_glyph = draw_key_path) +
     geom_point(data = tdf, aes(x = x, y = y)) +
@@ -74,8 +74,7 @@ plot_ellipse <- function(tsample, q, qbar, qhat) {
                           labels = c(TeX("$Q_p$"),
                                      TeX("$\\hat{Q}_p$"),
                                      TeX("$\\bar{Q}_p$")))
-  print(ggfig)
-  dev.off()
+  ggsave(f, width = 7, height = 7)
 } 
 
 
@@ -102,9 +101,7 @@ option_list <- list(
   make_option("--gamma", type = "numeric", default = 1,
               help = "Choose extreme value index"),
   make_option("--seed", type = "integer", default = 204,
-              help = "Set seed for sampling"),
-  make_option("--path", type = "character", default = "figures/",
-              help = "Directory where figure is saved")
+              help = "Set seed for sampling")
 )
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
