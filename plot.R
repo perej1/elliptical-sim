@@ -53,7 +53,7 @@ plot_ellipse <- function(tsample, q, qbar, qhat) {
   
   # Plotting
   dir.create("figures", showWarnings = FALSE)
-  f <- sprintf("%s/fig-n_%d-k_%d-p_%s-gamma_%.2f.pdf", "figures", opt$n,
+  f <- sprintf("%s/fig-n_%d-k_%d-p_%s-gamma_%.2f.eps", "figures", opt$n,
                opt$k, opt$p, opt$gamma)
   ggplot(data) +
     geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b, angle = theta,
