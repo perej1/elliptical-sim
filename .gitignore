@@ -1,0 +1,5 @@
+*swp
+*.Rhistory
+renv/library/
+settings.dcf
+.Rproj.user
