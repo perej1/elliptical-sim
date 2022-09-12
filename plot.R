@@ -71,7 +71,7 @@ plot_ellipse <- function(tsample, q, qbar, qhat) {
 
   # Plotting
   dir.create("figures", showWarnings = FALSE)
-  f <- sprintf("%s/fig-n_%d-k_%d-p_%s-gamma_%.2f.png", "figures", opt$n,
+  f <- sprintf("%s/fig-n_%d-k_%d-p_%s-gamma_%.2f.jpg", "figures", opt$n,
                opt$k, opt$p, opt$gamma)
   ggplot(data) +
     geom_ellipse(aes(x0 = x, y0 = y, a = a, b = b, angle = theta,
@@ -92,7 +92,7 @@ plot_ellipse <- function(tsample, q, qbar, qhat) {
                           labels = c(TeX("$Q_p$"),
                                      TeX("$\\hat{Q}_p$"),
                                      TeX("$\\bar{Q}_p$")))
-  ggsave(f, width = 7, height = 7)
+  ggsave(f, width = 7, height = 7, dpi = 1000)
 }
 
 
