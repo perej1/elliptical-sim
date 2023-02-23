@@ -25,14 +25,55 @@ sqrtmat <- function(sigma) {
   eigenvec %*% diag(eigenval^0.5) %*% t(eigenvec)
 }
 
-depth_extreme_qregion <- function(data, p, k, m) {
+tdist_extreme_region <- function(mu, sigma, gamma, p, m) {
+  d <- length(mu)
+  w <- get_ball_mesh(d, m)
+  
+  alpha <- 1 / gamma
+  lambda <- sqrtmat(d * qf(1 - p, d, 1 / gamma) * sigma)
+  coord <- sweep(w %*% t(lambda), 2, mu, "+")
+  
+  if (d == 2) {
+    tibble(x = coord[, 1], y = coord[, 2])
+  }
+  else if (d == 3) {
+    tibble(x = coord[, 1], y = coord[, 2], z = coord[, 3])
+  }
+}
+
+elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
+  d <- ncol(data)
+  n <- nrow(data)
+  w <- get_ball_mesh(d, m)
+  est <- covMcd(data, alpha = 0.5)
+  
+  # Center data
+  data <- sweep(data, 2, mu_est, "-")
+  
+  # Approximate generating variate
+  radius <- sqrt(mahalanobis(data, FALSE, sigma_est, inverted = FALSE))
+  radius_sort <- sort(radius, decreasing = FALSE)
+  
+  gamma_est <- mean((log(radius_sort[(n - k):n]) - log(radius_sort[n - k]))[-1])
+  lambda <- sqrtmat((radius_sort[n - k] * (k / (n * p))^gamma_est)^2 * sigma_est)
+  
+  coord <- sweep(w %*% t(lambda), 2, mu_est, "+")
+  if (d == 2) {
+    tibble(x = coord[, 1], y = coord[, 2])
+  }
+  else if (d == 3) {
+    tibble(x = coord[, 1], y = coord[, 2], z = coord[, 3])
+  }
+}
+
+depth_extreme_qregion <- function(data, mu_est, p, k, m) {
   d <- ncol(data)
   n <- nrow(data)
   w <- get_ball_mesh(d, m)
   
   # Center the data
   center_est <- covMcd(data, alpha = 0.5)$center
-  data <- sweep(data, 2, center_est, "-")
+  data <- sweep(data, 2, mu_est, "-")
   
   radius <- apply(data, 1, norm, type = "2")
   radius_sort <- sort(radius, decreasing = FALSE)
@@ -49,32 +90,7 @@ depth_extreme_qregion <- function(data, p, k, m) {
   nu_s_hat <- 1 / k * sum(radius / u_est >= hd_w_nu_hat_star[x_approx_w]^gamma_est)
   
   r <- u_est * (k * nu_s_hat / (n * p))^gamma_est * hd_w_nu_hat_star^gamma_est
-  coord <- sweep(r * w, 2, center_est, "+")
-  if (d == 2) {
-    tibble(x = coord[, 1], y = coord[, 2])
-  }
-  else if (d == 3) {
-    tibble(x = coord[, 1], y = coord[, 2], z = coord[, 3])
-  }
-}
-
-elliptical_extreme_qregion <- function(data, p, k, m) {
-  d <- ncol(data)
-  n <- nrow(data)
-  w <- get_ball_mesh(d, m)
-  est <- covMcd(data, alpha = 0.5)
-  
-  # Center data
-  data <- sweep(data, 2, est$center, "-")
-  
-  # Approximate generating variate
-  radius <- sqrt(mahalanobis(data, FALSE, est$cov, inverted = FALSE))
-  radius_sort <- sort(radius, decreasing = FALSE)
-  
-  gamma_est <- mean((log(radius_sort[(n - k):n]) - log(radius_sort[n - k]))[-1])
-  lambda <- sqrtmat((radius_sort[n - k] * (k / (n * p))^gamma_est)^2 * est$cov)
-  
-  coord <- sweep(w %*% t(lambda), 2, est$center, "+")
+  coord <- sweep(r * w, 2, mu_est, "+")
   if (d == 2) {
     tibble(x = coord[, 1], y = coord[, 2])
   }
@@ -84,17 +100,21 @@ elliptical_extreme_qregion <- function(data, p, k, m) {
 }
 
 set.seed(123)
+gamma <- 1
 n <- 5000
 k <- 400
 m <- 1000
-p <- 1 / 5000
+p <- 1 / 500
 mu <- c(10000, 10000)
 sigma <- matrix(c(1, 0.9, 0.9, 2), byrow = TRUE, ncol = 2)
-data <- rmvt(n, sigma, df = 1, delta = mu)
+data <- rmvt(n, sigma, df = 1 / gamma, delta = mu, type = "shifted")
+est <- covMcd(data, alpha = 0.5)
 
-ret_depth <- depth_extreme_qregion(data, p, k, m)
-ret_elliptical <- elliptical_extreme_qregion(data, p, k, m)
+ret_depth <- depth_extreme_qregion(data, est$center, p, k, m)
+ret_elliptical <- elliptical_extreme_qregion(data, est$center, est$cov, p, k, m)
+real <- tdist_extreme_region(mu, sigma, gamma, p, m)
 
 plot(ret_depth$x, ret_depth$y, type = "l")
 points(ret_elliptical$x, ret_elliptical$y, type = "l")
+points(real$x, real$y, type = "l")
 points(data[, 1], data[, 2])
