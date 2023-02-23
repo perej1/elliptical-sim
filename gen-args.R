@@ -1,9 +1,8 @@
 # Make a txt file of simulation arguments, one argument combination per row
-n <- 5000
-k <- 400
+n <- c(100, 500, 1000, 5000)
+k <- c("large", "medium", "small")
 p <- c("low", "medium", "high")
-gamma <- 1
-seed <- 204
+type <- c("cauchy", "cauchyAff", "cauchy3d", "tdistDeg4", "tdistDeg2", "clover")
 
 arg <- expand.grid(n = n, k = k, p = p, gamma = gamma, seed = seed)
 arg <- sprintf("plot.R --n %d --k %d --p %s --gamma %d --seed %d",

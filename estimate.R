@@ -2,6 +2,11 @@ library(mvtnorm)
 library(tibble)
 library(rlang)
 library(robustbase)
+library(optparse)
+
+# Lookup tables
+p <- c(low = 2, medium = 1, high = 0.5)
+k <- c(large = 0.05, medium = 0.1, small = 0.2)
 
 get_ball_mesh <- function(d, m) {
   if (d == 2) {
