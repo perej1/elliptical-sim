@@ -3,6 +3,28 @@ library(rlang)
 library(mvtnorm)
 library(tibble)
 library(readr)
+library(pracma)
+
+#' Generate Sample from Clover Distribution
+#'
+#' @param n An Integer. Sample size.
+#'
+#' @return A n by 2 matrix. Each row represents one observation.
+gen_clover <- function(n) {
+  u <- runif(n)
+  v <- runif(n)
+  r <- ((1 - u)^(-2) - 1)^(1 / 6)
+  theta <- rep(0, n)
+  for (i in 1:n) {
+    f <- function(x) {
+      (3 / (10 * pi) * r[i]^5 / (1 + r[i]^6)^(3 / 2) * (5 * x + sin(4 * x))) /
+      (3 * r[i]^5 / (1 + r[i]^6)^(3 / 2)) - v[i]
+    }
+    theta[i] <- fzero(f, 0)$x
+  }
+  
+  r * cbind(cos(theta), sin(theta))
+}
 
 # Argument list
 option_list <- list(
@@ -32,6 +54,7 @@ gen_samp <- function(n) {
     cauchy3d = rmvt(n, diag(3), 1, rep(0, 3)),
     tdistDeg2 = rmvt(n, diag(2), 2, rep(0, 2)),
     tdistDeg4 = rmvt(n, diag(2), 4, rep(0, 2)),
+    clover = gen_clover(n),
     abort("Invalid distribution type.")
   )
 }
