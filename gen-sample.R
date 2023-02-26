@@ -22,18 +22,16 @@ gen_clover <- function(n) {
     }
     theta[i] <- fzero(f, 0)$x
   }
-  
+
   r * cbind(cos(theta), sin(theta))
 }
 
 # Argument list
 option_list <- list(
-  make_option("--type", type = "character", default = "cauchy",
+  make_option("--type", type = "character", default = "cauchy3d",
               help = "Distribution type"),
   make_option("--n", type = "integer", default = 4,
               help = "Sample size"),
-  make_option("--d", type = "integer", default = 2,
-              help = "Dimension of distribution"),
   make_option("--s", type = "integer", default = 5,
               help = "Number of samples"),
   make_option("--seed", type = "integer", default = 204,
@@ -48,7 +46,7 @@ sigma <- matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2)
 
 # Simulate s samples from distribution specified by type
 gen_samp <- function(n) {
-  switch (opt$type,
+  switch(opt$type,
     cauchy = rmvt(n, diag(2), 1, rep(0, 2)),
     cauchyAff = rmvt(n, sigma, 1, mu),
     cauchy3d = rmvt(n, diag(3), 1, rep(0, 3)),
@@ -58,20 +56,15 @@ gen_samp <- function(n) {
     abort("Invalid distribution type.")
   )
 }
-
 set.seed(opt$seed)
 samples <- replicate(opt$s, gen_samp(opt$n), simplify = FALSE)
-samples <- do.call(cbind, samples)
 
-if (opt$d == 2) {
-  colnames(samples) <- paste0(c("x", "y", "z"), rep(1:opt$s, each = 3))
-} else if (opt$d == 3) {
-  colnames(samples) <- paste0(c("x", "y"), rep(1:opt$s, each = 2))
-} else {
-  abort("Dimension must be two or three.")
-}
+# Create tibble of samples
+d <- ncol(samples[[1]])
+samples <- do.call(cbind, samples)
+colnames(samples) <- paste0(c("x", "y", "z")[1:d], rep(1:opt$s, each = d))
+samples <- as_tibble(samples)
 
 # Write data
-samples <- as_tibble(samples)
 filename <- paste0(opt$type, "_", opt$n, ".csv")
 write_csv(samples, paste0("data/samples/", filename))
