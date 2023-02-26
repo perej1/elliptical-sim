@@ -4,6 +4,8 @@ library(mvtnorm)
 library(tibble)
 library(readr)
 library(pracma)
+library(reshape2)
+suppressPackageStartupMessages(library(purrr))
 
 #' Generate Sample from Clover Distribution
 #'
@@ -28,11 +30,11 @@ gen_clover <- function(n) {
 
 # Argument list
 option_list <- list(
-  make_option("--type", type = "character", default = "cauchy3d",
+  make_option("--type", type = "character", default = "cauchy",
               help = "Distribution type"),
-  make_option("--n", type = "integer", default = 4,
+  make_option("--n", type = "integer", default = 3,
               help = "Sample size"),
-  make_option("--s", type = "integer", default = 5,
+  make_option("--s", type = "integer", default = 100,
               help = "Number of samples"),
   make_option("--seed", type = "integer", default = 204,
               help = "Set seed for sampling")
@@ -57,7 +59,7 @@ gen_samp <- function(n) {
   )
 }
 set.seed(opt$seed)
-samples <- replicate(opt$s, gen_samp(opt$n), simplify = FALSE)
+samples <- map(1:opt$s, \(i) gen_samp(opt$n))
 
 # Create tibble of samples
 d <- ncol(samples[[1]])

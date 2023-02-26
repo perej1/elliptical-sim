@@ -4,13 +4,13 @@ n <- c(100, 500, 1000, 5000)
 s <- 100
 seed <- 204
 
-arg_gen_sample <- expand.grid(type = type, n = n, s = s, seed = seed)
-arg_gen_sample <- sprintf("gen-sample.R --type %s --n %d --s %d --seed %d",
-                          arg_gen_sample$type,
-                          arg_gen_sample$n,
-                          arg_gen_sample$s,
-                          arg_gen_sample$seed)
+arg <- expand.grid(type = type, n = n, s = s, seed = seed)
+arg <- sprintf("gen-sample.R --type %s --n %d --s %d --seed %d",
+               arg$type,
+               arg$n,
+               arg$s,
+               arg$seed)
 
 connection <- file("args/arg-gen-sample.txt")
-writeLines(arg_gen_sample, connection)
+writeLines(arg, connection)
 close(connection)
