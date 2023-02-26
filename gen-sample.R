@@ -1,11 +1,5 @@
 library(optparse)
-library(rlang)
 library(mvtnorm)
-library(tibble)
-library(readr)
-library(pracma)
-library(reshape2)
-suppressPackageStartupMessages(library(purrr))
 
 #' Generate Sample from Clover Distribution
 #'
@@ -22,7 +16,7 @@ gen_clover <- function(n) {
       (3 / (10 * pi) * r[i]^5 / (1 + r[i]^6)^(3 / 2) * (5 * x + sin(4 * x))) /
       (3 * r[i]^5 / (1 + r[i]^6)^(3 / 2)) - v[i]
     }
-    theta[i] <- fzero(f, 0)$x
+    theta[i] <- pracma::fzero(f, 0)$x
   }
 
   r * cbind(cos(theta), sin(theta))
@@ -34,13 +28,15 @@ option_list <- list(
               help = "Distribution type"),
   make_option("--n", type = "integer", default = 3,
               help = "Sample size"),
-  make_option("--s", type = "integer", default = 100,
-              help = "Number of samples"),
   make_option("--seed", type = "integer", default = 204,
               help = "Set seed for sampling")
 )
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
+
+# Global parameters
+s <- 100
+d <- ifelse(opt$type == "cauchy3d", 3, 2)
 
 # Nontrivial location-scatter pair
 mu <- c(100, -250)
@@ -55,18 +51,18 @@ gen_samp <- function(n) {
     tdistDeg2 = rmvt(n, diag(2), 2, rep(0, 2)),
     tdistDeg4 = rmvt(n, diag(2), 4, rep(0, 2)),
     clover = gen_clover(n),
-    abort("Invalid distribution type.")
+    rlang::abort("Invalid distribution type.")
   )
 }
 set.seed(opt$seed)
-samples <- map(1:opt$s, \(i) gen_samp(opt$n))
+samples <- purrr::map(1:s, \(i) gen_samp(opt$n))
 
 # Create tibble of samples
 d <- ncol(samples[[1]])
 samples <- do.call(cbind, samples)
-colnames(samples) <- paste0(c("x", "y", "z")[1:d], rep(1:opt$s, each = d))
-samples <- as_tibble(samples)
+colnames(samples) <- paste0(c("x", "y", "z")[1:d], rep(1:s, each = d))
+samples <- tibble::as_tibble(samples)
 
 # Write data
 filename <- paste0(opt$type, "_", opt$n, ".csv")
-write_csv(samples, paste0("data/samples/", filename))
+readr::write_csv(samples, paste0("data/samples/", filename))
