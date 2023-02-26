@@ -5,8 +5,9 @@ n <- c(100, 500, 1000, 5000)
 seed <- 204
 p <- c("low", "medium", "high")
 k <-c("large", "medium", "small")
+i <- 1
 
-# Simulation arguments for creating samples
+# Arguments for creating samples
 arg <- expand.grid(type = type, n = n, seed = seed)
 arg <- sprintf("gen-sample.R --type %s --n %d --seed %d",
                arg$type,
@@ -17,7 +18,7 @@ connection <- file("args/arg-gen-sample.txt")
 writeLines(arg, connection)
 close(connection)
 
-# Simulation arguments for estimation
+# Arguments for estimation
 arg <- expand.grid(type = type, n = n, p = p, k = k)
 arg <- sprintf("estimate.R --type %s --n %d --p %s --k %s",
                arg$type,
@@ -26,5 +27,18 @@ arg <- sprintf("estimate.R --type %s --n %d --p %s --k %s",
                arg$k)
 
 connection <- file("args/arg-estimate.txt")
+writeLines(arg, connection)
+close(connection)
+
+# Arguments for plotting
+arg <- expand.grid(type = type, n = n, p = p, k = k, i = 1)
+arg <- sprintf("plot.R --type %s --n %d --p %s --k %s --i %d",
+               arg$type,
+               arg$n,
+               arg$p,
+               arg$k,
+               arg$i)
+
+connection <- file("args/arg-plot.txt")
 writeLines(arg, connection)
 close(connection)
