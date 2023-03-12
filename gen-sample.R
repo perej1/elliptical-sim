@@ -1,7 +1,7 @@
 library(optparse)
 library(mvtnorm)
 
-#' Generate Sample from Clover Distribution
+#' Generate sample from clover distribution
 #'
 #' @param n An Integer. Sample size.
 #'
@@ -36,18 +36,16 @@ opt <- parse_args(opt_parser)
 
 # Global parameters
 s <- 100
-d <- ifelse(opt$type == "cauchy3d", 3, 2)
+d <- 2
 
-# Nontrivial location-scatter pair
-mu <- c(100, -250)
+# Nontrivial scatter
 sigma <- matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2)
 
 # Simulate s samples from distribution specified by type
 gen_samp <- function(n) {
   switch(opt$type,
     cauchy = rmvt(n, diag(2), 1, rep(0, 2)),
-    cauchyAff = rmvt(n, sigma, 1, mu),
-    cauchy3d = rmvt(n, diag(3), 1, rep(0, 3)),
+    cauchyAff = rmvt(n, sigma, 1, rep(0,2)),
     tdistDeg2 = rmvt(n, diag(2), 2, rep(0, 2)),
     tdistDeg4 = rmvt(n, diag(2), 4, rep(0, 2)),
     clover = gen_clover(n),
