@@ -1,6 +1,7 @@
 m <- 1000
 n <- 100
 beta <- 0.00001
+p <- 1 / 10000
 
 density_clover <- function(x, y) {
   r_0 <- 1.2481
@@ -17,7 +18,7 @@ density_clover <- function(x, y) {
 }
 
 gen_clover <- function(n) {
-  xy_max <- 50
+  xy_max <- 30
   z_max <- density_clover(0.0001, 0.0001)
   ret <- matrix(NA, nrow = n, ncol = 2)
   for (i in 1:n) {
@@ -34,7 +35,7 @@ gen_clover <- function(n) {
   ret
 }
 
-clover_contour <- function(beta, m) {
+clover_contour_beta <- function(beta, m) {
   theta <- seq(0, 2*pi, length.out = m)
   r <- rep(NA, m)
   for (i in 1:m) {
@@ -48,7 +49,7 @@ clover_contour <- function(beta, m) {
         a * x^4 - beta * (1 + x^6)^(3/2)
       }
     }
-    r[i] <- pracma::fzero(g, c(0, 500))$x
+    r[i] <- pracma::fzero(g, c(0, 1000))$x
   }
   
   x <- r * cos(theta)
@@ -56,5 +57,16 @@ clover_contour <- function(beta, m) {
   cbind(x, y)
 }
 
-plot(clover_contour(beta, m), type = "l")
+clover_contour_p <- function(p, m) {
+  n <- 2 * ceiling(1 / p)
+  f_sample <- apply(gen_clover2(n), 1, function (x) density_clover(x[1], x[2]))
+  beta <- quantile(f_sample, p)
+  clover_contour_beta(beta, m)
+}
+
+plot(clover_contour_beta(beta, m), type = "l")
 points(gen_clover(5000))
+points(gen_clover2(20000))
+
+plot(clover_contour_p(p, m), type = "l")
+points(gen_clover2(5000))
