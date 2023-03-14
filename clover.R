@@ -1,5 +1,6 @@
 m <- 1000
-beta <- 0.01
+n <- 100
+beta <- 0.00001
 
 density_clover <- function(x, y) {
   r_0 <- 1.2481
@@ -13,6 +14,24 @@ density_clover <- function(x, y) {
     down <- 10 * pi * (1 + (x^2 + y^2)^3)^(3/2)
     up / down
   }
+}
+
+gen_clover <- function(n) {
+  xy_max <- 50
+  z_max <- density_clover(0.0001, 0.0001)
+  ret <- matrix(NA, nrow = n, ncol = 2)
+  for (i in 1:n) {
+    x <- runif(1, min = -xy_max, max = xy_max)
+    y <- runif(1, min = -xy_max, max = xy_max)
+    z <- runif(1, min = 0, max = z_max)
+    while (z > density_clover(x, y)) {
+      x <- runif(1, min = -xy_max, max = xy_max)
+      y <- runif(1, min = -xy_max, max = xy_max)
+      z <- runif(1, min = 0, max = z_max)
+    }
+      ret[i, ] <- c(x,y)
+  }
+  ret
 }
 
 clover_contour <- function(beta, m) {
@@ -38,3 +57,4 @@ clover_contour <- function(beta, m) {
 }
 
 plot(clover_contour(beta, m), type = "l")
+points(gen_clover(5000))
