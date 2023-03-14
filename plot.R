@@ -46,7 +46,7 @@ sample_i <- readr::read_csv(paste0("data/samples/", filename),
   select(num_range(c("x", "y"), opt$i)) %>%
   rename(x = 1, y = 2)
 
-
+# Plotting
 g <- ggplot(data_est, aes(x = x, y = y)) +
   geom_path(aes(group = group, linetype = group), show.legend = FALSE) +
   geom_point(data = sample_i, mapping = aes(x = x, y = y)) +
