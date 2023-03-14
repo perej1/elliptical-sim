@@ -27,7 +27,10 @@ ellipse_region <- function(mu, sigma, m) {
   sweep(w %*% t(lambda), 2, mu, "+")
 }
 
-compute_error <- function(real, estimate, m1, m2, f) {
+compute_error <- function(real, estimate, m1, m2, f, sigma) {
+  l <- solve(sqrtmat(sigma))
+  estimate <- estimate %*% t(l)
+  real <- real %*% t(l)
   res <- 0
   coord <- matrix(NA, ncol = 2, nrow = m1 * m2)
   
@@ -67,31 +70,43 @@ compute_error <- function(real, estimate, m1, m2, f) {
 
 ###################### TEST ESTIMATION OF AREA ####################
 
-m <- 10000
+m <- 1000
 mu <- rep(0, 2)
-sigma1 <- matrix(c(9, 1.5, 1.5, 5), byrow = TRUE, ncol = 2)
+sigma2 <- matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2)
+sigma1 <- matrix(c(10, 9.5, 9.5, 10.25), byrow = TRUE, ncol = 2)
+l <- solve(sqrtmat(sigma2))
+sigma1hat <- l %*% sigma1 %*% l
 #sigma2 <- matrix(c(14, 0.5, 0.5, 2), byrow = TRUE, ncol = 2)
-sigma2 <- matrix(c(11, 2, 2, 11.25), byrow = TRUE, ncol = 2)
+#sigma2 <- matrix(c(11, 2, 2, 11.25), byrow = TRUE, ncol = 2)
 
 e1 <- ellipse_region(mu, sigma1, m)
 e2 <- ellipse_region(mu, sigma2, m)
 
-comp <- compute_error(e1, e2, m, 1000, function (x) 1)
-#xy <- comp$coord
+
+e11 <- e1 %*% t(l)
+e22 <- e2 %*% t(l)
+
+comp <- compute_error(e1, e2, m, 100, function (x) 1, sigma2)
+xy <- comp$coord
 
 plot(e2[, 1], e2[, 2], type = "l", asp = 1)
 points(e1[, 1], e1[, 2], type = "l")
-#points(xy[, 1], xy[, 2], pch = 21)
 
-pi * abs(prod(eigen(sigma1)$values^(0.5)) - prod(eigen(sigma2)$values^(0.5)))
+plot(e22[, 1], e22[, 2], type = "l", asp = 1)
+points(e11[, 1], e11[, 2], type = "l")
+
+points(xy[, 1], xy[, 2], pch = 21)
+
+abs(pi - pi * prod(eigen(sigma1hat)$values^(0.5)))
 comp$res # Estimate
 
 #################### TEST ESTIMATION OF DENSITY ######################
 
 m <- 1000
+mu <- rep(0, 2)
 #sigma <- diag(2)
-#sigma <- matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2)
-sigma <- matrix(c(2, 0, 0, 1), byrow = TRUE, ncol = 2)
+sigma <- matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2)
+sigma <- matrix(c(2, 0, 0, 2), byrow = TRUE, ncol = 2)
 sigma <- matrix(c(11, 2, 2, 11.25), byrow = TRUE, ncol = 2)
 #sigma <- matrix(c(4, 0, 0, 2), byrow = TRUE, ncol = 2)
 gamma <- 1
@@ -104,10 +119,11 @@ e2 <- tdist_extreme_region(mu, sigma, gamma, p[2], m)
 p_diff_real <- (1 - p[2]) - (1 - p[1])
 
 f <- function(x) {
-  dmvt(x, mu, sigma, df = 1 / gamma, log = FALSE)
+  dmvt(x, mu, diag(2), df = 1 / gamma, log = FALSE)
 }
 
-comp <- compute_error(e1, e2, m, 100, f)
+comp <- compute_error(e1, e2, m, 100, f, sigma)
+
 xy <- comp$coord
 
 plot(e2[, 1], e2[, 2], type = "l", asp = 1)
