@@ -1,3 +1,4 @@
+# Perform simulation for one scenario.
 source("functions.R")
 
 option_list <- list(
@@ -5,12 +6,12 @@ option_list <- list(
               help = "Distribution type"),
   make_option("--n", type = "integer", default = 500,
               help = "Sample size"),
-  make_option("--seed", type = "integer", default = 278,
-              help = "Set seed for sampling"),
   make_option("--p", type = "character", default = "low",
               help = "Probability mass outside quantile region"),
   make_option("--k", type = "character", default = "large",
-              help = "Sample size of the tail")
+              help = "Sample size of the tail"),
+  make_option("--seed", type = "integer", default = 278,
+              help = "Set seed for sampling")
 )
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
@@ -46,7 +47,6 @@ k <- switch(opt$k,
 gamma <- switch(opt$type,
                 cauchy = 1,
                 cauchyAff = 1,
-                cauchy3d = 1,
                 tdistDeg2 = 1 / 2,
                 tdistDeg4 = 1 / 4,
                 rlang::abort("Invalid distribution type")
