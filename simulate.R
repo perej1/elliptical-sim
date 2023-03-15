@@ -112,7 +112,6 @@ for (i in 1:s) {
   d_est <- depth_estimates %>%
     select(num_range(c("x", "y"), i)) %>%
     as.matrix
-  print(i)
   elliptical_err[i] <- compute_error(as.matrix(real), e_est, m, 10, f, sigma)$res / p
   depth_err[i] <- tryCatch(compute_error(as.matrix(real), d_est, m, 10, f, sigma)$res,
                            error = function(err) NA) / p
