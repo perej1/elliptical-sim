@@ -2,13 +2,13 @@
 source("functions.R")
 
 option_list <- list(
-  make_option("--type", type = "character", default = "cauchy",
+  make_option("--type", type = "character", default = "cauchyAff",
               help = "Distribution type"),
   make_option("--n", type = "integer", default = 500,
               help = "Sample size"),
   make_option("--p", type = "character", default = "low",
               help = "Probability mass outside quantile region"),
-  make_option("--k", type = "character", default = "large",
+  make_option("--k", type = "character", default = "small",
               help = "Sample size of the tail"),
   make_option("--seed", type = "integer", default = 278,
               help = "Set seed for sampling")
@@ -109,13 +109,13 @@ for (i in 1:s) {
   e_est <- elliptical_estimates %>%
     select(num_range(c("x", "y"), i)) %>%
     as.matrix
-  
   d_est <- depth_estimates %>%
     select(num_range(c("x", "y"), i)) %>%
     as.matrix
-  
+  print(i)
   elliptical_err[i] <- compute_error(as.matrix(real), e_est, m, 10, f, sigma)$res / p
-  depth_err[i] <- compute_error(as.matrix(real), d_est, m, 10, f, sigma)$res / p
+  depth_err[i] <- tryCatch(compute_error(as.matrix(real), d_est, m, 10, f, sigma)$res,
+                           error = function(err) NA) / p
   cli::cli_progress_update()
 }
 
