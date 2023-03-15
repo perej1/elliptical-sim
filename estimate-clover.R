@@ -1,3 +1,5 @@
+# Estimate elliptical extreme quantile region for clover distribution with
+# certain parameters.
 library(optparse)
 library(ggplot2)
 suppressPackageStartupMessages(library(dplyr))
@@ -19,9 +21,12 @@ sqrtmat <- function(sigma) {
 }
 
 
-elliptical_extreme_qregion <- function(data, sigma_est, p, k, m) {
+elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
   n <- nrow(data)
   w <- get_ball_mesh(m)
+  
+  # Center data
+  data <- sweep(data, 2, mu_est, "-")
   
   # Approximate generating variate
   radius <- sqrt(stats::mahalanobis(data, FALSE, sigma_est, inverted = FALSE))
@@ -35,7 +40,7 @@ elliptical_extreme_qregion <- function(data, sigma_est, p, k, m) {
   
   # Estimate extreme quantile region
   lambda <- sqrtmat(r_hat^2 * sigma_est)
-  w %*% t(lambda)
+  sweep(w %*% t(lambda), 2, mu_est, "+")
 }
 
 
@@ -108,7 +113,9 @@ option_list <- list(
   make_option("--n", type = "integer", default = 5000,
               help = "Sample size"),
   make_option("--k", type = "character", default = "large",
-              help = "Sample size of the tail")
+              help = "Sample size of the tail"),
+  make_option("--seed", type = "integer", default = 204,
+              help = "Set seed for sampling")
 )
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
@@ -127,7 +134,7 @@ k <- switch(opt$k,
 p <- c(2 / opt$n, 1 / (2 * opt$n))
 
 # Generate sample
-set.seed(204)
+set.seed(opt$seed)
 sample <- gen_clover(opt$n)
 colnames(sample) <- c("x", "y")
 
@@ -136,7 +143,7 @@ est <- robustbase::covMcd(sample, alpha = 0.5)
 
 data_list <- as.list(rep(NA, length(p)))
 for (i in 1:length(p)) {
-  estimate <- elliptical_extreme_qregion(sample, est$cov, p[i], k, m)
+  estimate <- elliptical_extreme_qregion(sample, est$center, est$cov, p[i], k, m)
   real <- clover_contour_p(p[i], m)
   
   colnames(estimate) <- c("x", "y")
@@ -146,8 +153,7 @@ for (i in 1:length(p)) {
     mutate(group = rep(paste0(c("real", "estimate"), i), each = 1000))
 }
 
-
-g<-ggplot(as_tibble(sample), aes(x=x, y=y)) +
+g <- ggplot(as_tibble(sample), aes(x=x, y=y)) +
   geom_point() +
   geom_path(data = bind_rows(data_list),
             aes(x=x, y=y, group = group, linetype = group),
