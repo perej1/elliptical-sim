@@ -1,6 +1,0 @@
-gen-sample.R --type cauchy --n 500 --seed 204
-gen-sample.R --type cauchyAff --n 500 --seed 204
-gen-sample.R --type cauchy --n 1000 --seed 204
-gen-sample.R --type cauchyAff --n 1000 --seed 204
-gen-sample.R --type cauchy --n 5000 --seed 204
-gen-sample.R --type cauchyAff --n 5000 --seed 204
