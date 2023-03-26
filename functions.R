@@ -4,12 +4,25 @@ library(ggplot2)
 suppressPackageStartupMessages(library(dplyr))
 
 
+#' Generate m equally spaced points from a circle
+#'
+#' @param m Integer, number of points.
+#'
+#' @return Double matrix of points, one row represents one point.
 get_ball_mesh <- function(m) {
   w <- seq(0, 2 * pi, length.out = m)
   cbind(cos(w), sin(w))
 }
 
 
+#' Compute square root of a positive definite matrix
+#' 
+#' More precisely, function computes matrix lambda
+#' s.t. sigma = lambda %*% lambda.
+#'
+#' @param sigma Double matrix, positive definite matrix.
+#'
+#' @return Double matrix, square root of the matrix.
 sqrtmat <- function(sigma) {
   eigenval <- eigen(sigma)$values
   if (any(eigenval <= 0) || any(sigma != t(sigma))) {
@@ -20,6 +33,14 @@ sqrtmat <- function(sigma) {
 }
 
 
+#' Compute theoretical quantile region for t-distribution
+#'
+#' @param sigma Double matrix, Scatter matrix.
+#' @param gamma Double, extreme value index.
+#' @param p Double, probability in quantile region.
+#' @param m Integer, number of points to return.
+#'
+#' @return Double matrix, m points from the boundary of quantile region.
 tdist_extreme_region <- function(sigma, gamma, p, m) {
   w <- get_ball_mesh(m)
   lambda <- sqrtmat(d * stats::qf(1 - p, d, 1 / gamma) * sigma)
@@ -27,6 +48,20 @@ tdist_extreme_region <- function(sigma, gamma, p, m) {
 }
 
 
+#' Estimate elliptical extreme quantile region.
+#' 
+#' Consistent for heavy-tailed distributions under some other technical
+#' assumptions.
+#'
+#' @param data Double matrix of observations, each row represents one
+#'   observation.
+#' @param mu_est Double vector, estimate of location.
+#' @param sigma_est Double matrix, estimate of scatter.
+#' @param p Double, probability in quantile region.
+#' @param k Integer, threshold for the sample from the tail.
+#' @param m Integer, number of points to return.
+#'
+#' @return Double matrix, m points from the boundary of quantile region.
 elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
   n <- nrow(data)
   w <- get_ball_mesh(m)
