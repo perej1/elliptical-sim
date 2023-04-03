@@ -37,10 +37,10 @@ sqrtmat <- function(sigma) {
 #'
 #' @param sigma Double matrix, Scatter matrix.
 #' @param gamma Double, extreme value index.
-#' @param p Double, probability in quantile region.
+#' @param p Double, probability mass in quantile region.
 #' @param m Integer, number of points to return.
 #'
-#' @return Double matrix, m points from the boundary of quantile region.
+#' @return Double matrix, m points from the boundary of the quantile region.
 tdist_extreme_region <- function(sigma, gamma, p, m) {
   w <- get_ball_mesh(m)
   lambda <- sqrtmat(d * stats::qf(1 - p, d, 1 / gamma) * sigma)
@@ -48,20 +48,20 @@ tdist_extreme_region <- function(sigma, gamma, p, m) {
 }
 
 
-#' Estimate elliptical extreme quantile region.
+#' Estimate elliptical extreme quantile region
 #' 
-#' Consistent for heavy-tailed distributions under some other technical
-#' assumptions.
+#' Consistent for heavy-tailed elliptical distributions under some other
+#' technical assumptions.
 #'
 #' @param data Double matrix of observations, each row represents one
 #'   observation.
-#' @param mu_est Double vector, estimate of location.
-#' @param sigma_est Double matrix, estimate of scatter.
+#' @param mu_est Double vector, estimate of the location.
+#' @param sigma_est Double matrix, estimate of the scatter.
 #' @param p Double, probability in quantile region.
 #' @param k Integer, threshold for the sample from the tail.
 #' @param m Integer, number of points to return.
 #'
-#' @return Double matrix, m points from the boundary of quantile region.
+#' @return Double matrix, m points from the boundary of the quantile region.
 elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
   n <- nrow(data)
   w <- get_ball_mesh(m)
@@ -85,6 +85,19 @@ elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
 }
 
 
+#' Estimate halfspace depth extreme quantile region
+#' 
+#' Consistent for multivariate regularly varying distributions under some other
+#' technical assumptions. See "Y. He, J. H. Einmahl, Estimation of extreme
+#' depth-based quantile regions" for more details.
+#'
+#' @param data Double matrix of observations, each row represents one
+#'   observation.
+#' @param p Double, probability in quantile region.
+#' @param k Integer, threshold for the sample from the tail.
+#' @param m Integer, number of points to return.
+#'
+#' @return Double matrix, m points from the boundary of the quantile region.
 depth_extreme_qregion <- function(data, p, k, m) {
   n <- nrow(data)
   w <- get_ball_mesh(m)
@@ -101,13 +114,20 @@ depth_extreme_qregion <- function(data, p, k, m) {
   
   data_unit <- sweep(data, 1, radius, "/")
   x_approx_w <- apply(data_unit %*% t(w), 1, which.max)
-  nu_s_hat <- 1 / k * sum(radius / u_est >= hd_w_nu_hat_star[x_approx_w]^gamma_est)
+  nu_s_hat <- 1 / k *
+    sum(radius / u_est >= hd_w_nu_hat_star[x_approx_w]^gamma_est)
   
   r <- u_est * (k * nu_s_hat / (n * p))^gamma_est * hd_w_nu_hat_star^gamma_est
   r * w
 }
 
 
+#' Density function of the clover distribution
+#'
+#' @param x Double, x-coordinate.
+#' @param y Double, y-coordinate.
+#'
+#' @return Double, Value of the function at point (x, y).
 density_clover <- function(x, y) {
   r_0 <- 1.2481
   if (x^2 + y^2 < r_0) {
@@ -123,6 +143,14 @@ density_clover <- function(x, y) {
 }
 
 
+#' Generate sample from the clover distribution
+#' 
+#' Sample is generated with rejection sampling, and the algorithm is very slow,
+#' however, suffices for the purpose of the article.
+#'
+#' @param n Sample size.
+#'
+#' @return Double matrix, each row representing one observation.
 gen_clover <- function(n) {
   xy_max <- 30
   z_max <- density_clover(0.0001, 0.0001)
@@ -142,6 +170,14 @@ gen_clover <- function(n) {
 }
 
 
+#' Compute density contours at level beta
+#'
+#' Computes points from the boundary of \eqn{\{x : f(x) \leq \beta\}}.
+#'
+#' @param beta Level corresponding to density contour.
+#' @param m Integer, number of points to return.
+#'
+#' @return Double matrix, m points from the boundary of the quantile region.
 clover_contour_beta <- function(beta, m) {
   theta <- seq(0, 2*pi, length.out = m)
   r <- rep(NA, m)
@@ -165,6 +201,12 @@ clover_contour_beta <- function(beta, m) {
 }
 
 
+#' Compute theoretical quantile region for clover distribution
+#'
+#' @param p Double, probability mass in quantile region.
+#' @param m Integer, number of points to return.
+#'
+#' @return Double matrix, m points from the boundary of the quantile region.
 clover_contour_p <- function(p, m) {
   n <- 2 * ceiling(1 / p)
   f_sample <- apply(gen_clover(n), 1, function (x) density_clover(x[1], x[2]))
@@ -173,12 +215,26 @@ clover_contour_p <- function(p, m) {
 }
 
 
+#' Calculate estimation error for elliptical extreme quantile region estimate
+#' 
+#' Estimate \eqn(\frac{\mathbb{P}(X \in Q \triangle \hat Q)}{p}), where \eqn{Q}
+#' is the theoretical quantile region and \eqn{\hat Q} is the estimate.
+#' Estimation of the integral \eqn{\mathbb{P}(X \in Q \triangle \hat Q)} is done
+#' with Riemann sum in ball coordinates
+#'
+#' @param real Double matrix, describes theoretical quantile region.
+#' @param estimate Double matrix, describes estimated quantile region.
+#' @param m1 Integer, discretization level for the angle.
+#' @param m2 Integer, discretization level for the radius.
+#' @param f Density function.
+#' @param sigma Double matrix, theoretical scatter matrix.
+#'
+#' @return Double, estimation error.
 compute_error <- function(real, estimate, m1, m2, f, sigma) {
   l <- solve(sqrtmat(sigma))
   estimate <- estimate %*% t(l)
   real <- real %*% t(l)
   res <- 0
-  coord <- matrix(NA, ncol = 2, nrow = m1 * m2)
   
   r_real <- apply(real, 1, norm, type = "2")
   r_estimate <- apply(estimate, 1, norm, type = "2")
@@ -204,12 +260,11 @@ compute_error <- function(real, estimate, m1, m2, f, sigma) {
     
     x <- r_seq * cos(theta[i])
     y <- r_seq * sin(theta[i])
-    coord[((i-1)*m2+1):(i*m2), ] <- cbind(x,y)
     resi <- 0
     for (j in 1:m2) {
       resi <- resi + f(c(x[j], y[j])) * r_seq[j]
     }
     res <- res + abs(r_real[i] - r_estimate[i]) * resi
   }
-  list(res = 2 * pi / (m1 * m2) * res, coord = coord)
+  2 * pi / (m1 * m2) * res
 }
