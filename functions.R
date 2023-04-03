@@ -16,7 +16,7 @@ get_ball_mesh <- function(m) {
 
 
 #' Compute square root of a positive definite matrix
-#' 
+#'
 #' More precisely, function computes matrix lambda
 #' s.t. sigma = lambda %*% lambda.
 #'
@@ -49,7 +49,7 @@ tdist_extreme_region <- function(sigma, gamma, p, m) {
 
 
 #' Estimate elliptical extreme quantile region
-#' 
+#'
 #' Consistent for heavy-tailed elliptical distributions under some other
 #' technical assumptions.
 #'
@@ -65,20 +65,20 @@ tdist_extreme_region <- function(sigma, gamma, p, m) {
 elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
   n <- nrow(data)
   w <- get_ball_mesh(m)
-  
+
   # Center data
   data <- sweep(data, 2, mu_est, "-")
-  
+
   # Approximate generating variate
   radius <- sqrt(stats::mahalanobis(data, FALSE, sigma_est, inverted = FALSE))
   radius_sort <- sort(radius, decreasing = FALSE)
-  
+
   # Estimate extreme value index
   gamma_est <- mean((log(radius_sort[(n - k):n]) - log(radius_sort[n - k]))[-1])
-  
+
   # Estimate extreme quantile of generating variate
   r_hat <- radius_sort[n - k] * (k / (n * p))^gamma_est
-  
+
   # Estimate extreme quantile region
   lambda <- sqrtmat(r_hat^2 * sigma_est)
   sweep(w %*% t(lambda), 2, mu_est, "+")
@@ -86,7 +86,7 @@ elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
 
 
 #' Estimate halfspace depth extreme quantile region
-#' 
+#'
 #' Consistent for multivariate regularly varying distributions under some other
 #' technical assumptions. See "Y. He, J. H. Einmahl, Estimation of extreme
 #' depth-based quantile regions" for more details.
@@ -101,22 +101,22 @@ elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
 depth_extreme_qregion <- function(data, p, k, m) {
   n <- nrow(data)
   w <- get_ball_mesh(m)
-  
+
   radius <- apply(data, 1, norm, type = "2")
   radius_sort <- sort(radius, decreasing = FALSE)
-  
+
   gamma_est <- mean((log(radius_sort[(n - k):n]) - log(radius_sort[n - k]))[-1])
   u_est <- radius_sort[n - k]
   nu_hat_unit_halfspace <- 1 / k * apply(w %*% t(data) >= u_est, 1, sum)
   hd_w_nu_hat_star <- sweep(pmax(w %*% t(w), 0)^(-1 / gamma_est), 2,
                             nu_hat_unit_halfspace, "*")
   hd_w_nu_hat_star <- apply(hd_w_nu_hat_star, 1, min, na.rm = TRUE)
-  
+
   data_unit <- sweep(data, 1, radius, "/")
   x_approx_w <- apply(data_unit %*% t(w), 1, which.max)
   nu_s_hat <- 1 / k *
     sum(radius / u_est >= hd_w_nu_hat_star[x_approx_w]^gamma_est)
-  
+
   r <- u_est * (k * nu_s_hat / (n * p))^gamma_est * hd_w_nu_hat_star^gamma_est
   r * w
 }
@@ -131,20 +131,20 @@ depth_extreme_qregion <- function(data, p, k, m) {
 density_clover <- function(x, y) {
   r_0 <- 1.2481
   if (x^2 + y^2 < r_0) {
-    a <- 3 * r_0^4 * (1 + r_0^6)^(-3/2) / (10 * pi)
+    a <- 3 * r_0^4 * (1 + r_0^6)^(-3 / 2) / (10 * pi)
     up <- 4 * (x^2 + y^2)^2 - 32 * x^2 * y^2
-    down <- r_0 * (x^2 + y^2)^(3/2)
+    down <- r_0 * (x^2 + y^2)^(3 / 2)
     a * (5 + up / down)
   } else {
     up <- 3 * (9 * (x^2 + y^2)^2 - 32 * x^2 * y^2)
-    down <- 10 * pi * (1 + (x^2 + y^2)^3)^(3/2)
+    down <- 10 * pi * (1 + (x^2 + y^2)^3)^(3 / 2)
     up / down
   }
 }
 
 
 #' Generate sample from the clover distribution
-#' 
+#'
 #' Sample is generated with rejection sampling, and the algorithm is very slow,
 #' however, suffices for the purpose of the article.
 #'
@@ -164,7 +164,7 @@ gen_clover <- function(n) {
       y <- runif(1, min = -xy_max, max = xy_max)
       z <- runif(1, min = 0, max = z_max)
     }
-    ret[i, ] <- c(x,y)
+    ret[i, ] <- c(x, y)
   }
   ret
 }
@@ -179,22 +179,22 @@ gen_clover <- function(n) {
 #'
 #' @return Double matrix, m points from the boundary of the quantile region.
 clover_contour_beta <- function(beta, m) {
-  theta <- seq(0, 2*pi, length.out = m)
+  theta <- seq(0, 2 * pi, length.out = m)
   r <- rep(NA, m)
   for (i in 1:m) {
     g <- function(x) {
       r_0 <- 1.2481
       if (x < r_0) {
-        a <- 3 * r_0^4 * (1 + r_0^6)^(-3/2) / (10 * pi)
+        a <- 3 * r_0^4 * (1 + r_0^6)^(-3 / 2) / (10 * pi)
         5 * a * r_0 + 4 * x * a * (1 - 2 * (sin(2 * theta[i]))^2) - beta * r_0
       } else {
         a <- 3 * (9 - 8 * (sin(2 * theta[i]))^2) / (10 * pi)
-        a * x^4 - beta * (1 + x^6)^(3/2)
+        a * x^4 - beta * (1 + x^6)^(3 / 2)
       }
     }
     r[i] <- pracma::fzero(g, c(0, 1000))$x
   }
-  
+
   x <- r * cos(theta)
   y <- r * sin(theta)
   cbind(x, y)
@@ -209,39 +209,45 @@ clover_contour_beta <- function(beta, m) {
 #' @return Double matrix, m points from the boundary of the quantile region.
 clover_contour_p <- function(p, m) {
   n <- 2 * ceiling(1 / p)
-  f_sample <- apply(gen_clover(n), 1, function (x) density_clover(x[1], x[2]))
+  f_sample <- apply(gen_clover(n), 1, function(x) density_clover(x[1], x[2]))
   beta <- quantile(f_sample, p)
   clover_contour_beta(beta, m)
 }
 
 
 #' Calculate estimation error for elliptical extreme quantile region estimate
-#' 
-#' Estimate \eqn(\frac{\mathbb{P}(X \in Q \triangle \hat Q)}{p}), where \eqn{Q}
+#'
+#' Estimate \eqn{\mathbb{P}(X \in Q \triangle \hat Q)}, where \eqn{Q}
 #' is the theoretical quantile region and \eqn{\hat Q} is the estimate.
 #' Estimation of the integral \eqn{\mathbb{P}(X \in Q \triangle \hat Q)} is done
-#' with Riemann sum in ball coordinates
+#' with Riemann sum in ball coordinates. Function restricts to the case where
+#' underlying distribution is a t-distribution, since this suffices for our
+#' simulations.
 #'
 #' @param real Double matrix, describes theoretical quantile region.
 #' @param estimate Double matrix, describes estimated quantile region.
 #' @param m1 Integer, discretization level for the angle.
 #' @param m2 Integer, discretization level for the radius.
-#' @param f Density function.
+#' @param gamma Double, extreme value index.
 #' @param sigma Double matrix, theoretical scatter matrix.
 #'
 #' @return Double, estimation error.
-compute_error <- function(real, estimate, m1, m2, f, sigma) {
+compute_error <- function(real, estimate, m1, m2, gamma, sigma) {
+  f <- function(x) {
+    dmvt(x, mu, diag(2), 1 / gamma, log = FALSE)
+  }
+
   l <- solve(sqrtmat(sigma))
   estimate <- estimate %*% t(l)
   real <- real %*% t(l)
   res <- 0
-  
+
   r_real <- apply(real, 1, norm, type = "2")
   r_estimate <- apply(estimate, 1, norm, type = "2")
-  
+
   ball_real <- sweep(real, 1, r_real, "/")
   ball_estimate <- sweep(estimate, 1, r_estimate, "/")
-  
+
   theta <- rep(NA, m1)
   for (i in 1:m1) {
     theta[i] <- acos(ball_real[i, 1])
@@ -249,15 +255,15 @@ compute_error <- function(real, estimate, m1, m2, f, sigma) {
       theta[i] <- 2 * pi - theta[i]
     }
   }
-  
+
   ind <- apply(ball_real %*% t(ball_estimate), 1, which.max)
   r_estimate <- r_estimate[ind]
-  
+
   for (i in 1:m1) {
     r_seq <- seq(min(r_estimate[i], r_real[i]),
                  max(r_estimate[i], r_real[i]),
                  length.out = m2)
-    
+
     x <- r_seq * cos(theta[i])
     y <- r_seq * sin(theta[i])
     resi <- 0
