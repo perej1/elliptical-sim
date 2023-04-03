@@ -4,7 +4,7 @@ source("functions.R")
 option_list <- list(
   make_option("--type", type = "character", default = "cauchyAff",
               help = "Distribution type"),
-  make_option("--n", type = "integer", default = 500,
+  make_option("--n", type = "integer", default = 1000,
               help = "Sample size"),
   make_option("--p", type = "character", default = "low",
               help = "Probability mass outside quantile region"),

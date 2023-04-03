@@ -10,12 +10,13 @@ mu <- rep(0, 2)
 gamma <- c(0.1, 0.5, 1)
 tol <- 0.1
 
+
 test_that("Error computation works for spherical t-distributions, when
           estimate is far away from real", {
   sigma <- diag(2)
   p <- c(1 / 1000, 1 / 100)
   err <- abs(p[1] - p[2])
-  
+
   for (gamma_i in gamma) {
     real <- tdist_extreme_region(sigma, gamma_i, p[1], m1)
     estimate <- tdist_extreme_region(sigma, gamma_i, p[2], m1)
@@ -26,12 +27,13 @@ test_that("Error computation works for spherical t-distributions, when
   }
 })
 
+
 test_that("Error computation works for elliptical t-distributions, when
           estimate is far away from real", {
   sigma <- matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2)
   p <- c(1 / 1000, 1 / 100)
   err <- abs(p[1] - p[2])
-  
+
   for (gamma_i in gamma) {
     real <- tdist_extreme_region(sigma, gamma_i, p[1], m1)
     estimate <- tdist_extreme_region(sigma, gamma_i, p[2], m1)

@@ -4,19 +4,20 @@ library(optparse)
 option_list <- list(
   make_option("--simulate", type = "logical", default = FALSE,
               help = "Simulate or not"),
-  make_option("--summarise", type = "logical", default = TRUE,
+  make_option("--summarise", type = "logical", default = FALSE,
               help = "Summarise or not"),
-  make_option("--clover", type = "logical", default = FALSE,
+  make_option("--clover", type = "logical", default = TRUE,
               help = "Generate clover example or not")
 )
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
-type <- c("cauchy", "cauchyAff", "tdistDeg4", "tdistDeg2")
-n <- c(500, 1000, 5000)
+type <- c("cauchy", "cauchyAff", "tdistDeg4")
+n <- c(1000, 5000)
 p <- c("low", "medium", "high")
 k <- c("small", "medium", "large")
 seed <- 278
+
 arg <- expand.grid(type = type, n = n, p = p, k = k, seed = seed)
 
 if (opt$simulate) {
@@ -28,7 +29,7 @@ if (opt$simulate) {
                         arg$p,
                         arg$k,
                         arg$seed)
-  
+
   n_scenario <- length(arg_vector)
   for (i in 1:n_scenario) {
     cli::cli_h2("Scenario {i}/{n_scenario} running")
@@ -39,9 +40,8 @@ if (opt$simulate) {
                       . \t k={arg$k[i]}
                       . \t seed={arg$seed[i]}")
     system(arg_vector[i])
-    cli::cli_alert_success("Done")
   }
-  
+
   cli::cli_h1("Simulation done")
 }
 
@@ -60,5 +60,32 @@ if (opt$summarise) {
     system(arg_vector[i])
     cli::cli_progress_update()
   }
+
   cli::cli_h1("Summary done")
+}
+
+if (opt$clover) {
+  cli::cli_h1("Clover example starting")
+
+  n <- 5000
+  k <- c("small", "medium", "large")
+  seed <- 278
+
+  arg <- expand.grid(n = n, k = k, seed = seed)
+  arg_vector <- sprintf("Rscript estimate-clover.R --n %d --k %s --seed %d",
+                        arg$n,
+                        arg$k,
+                        arg$seed)
+
+  n_scenario <- length(arg_vector)
+  for (i in 1:n_scenario) {
+    cli::cli_h2("Scenario {i}/{n_scenario} running")
+    cli::cli_alert_info("Parameters:
+                      . \t n={arg$n[i]}
+                      . \t k={arg$k[i]}
+                      . \t seed={arg$seed[i]}")
+    system(arg_vector[i])
+  }
+
+  cli::cli_h1("Clover example done")
 }

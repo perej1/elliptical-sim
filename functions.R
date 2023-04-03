@@ -277,6 +277,12 @@ compute_error <- function(real, estimate, m1, m2, gamma, sigma) {
   2 * pi / (m1 * m2) * res
 }
 
+
+#' Plot estimates and real region
+#'
+#' @param data Preprocessed data to plot, see summarise.R for preprocessing.
+#'
+#' @return The ggplot object
 plot_data <- function(data) {
   ggplot(data, aes(x = x, y = y)) +
     geom_path(aes(group = group, linetype = group), show.legend = FALSE) +

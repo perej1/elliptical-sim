@@ -4,7 +4,7 @@ source("functions.R")
 option_list <- list(
   make_option("--type", type = "character", default = "cauchyAff",
               help = "Distribution type"),
-  make_option("--n", type = "integer", default = 500,
+  make_option("--n", type = "integer", default = 1000,
               help = "Sample size"),
   make_option("--p", type = "character", default = "low",
               help = "Probability mass outside quantile region"),
@@ -47,7 +47,6 @@ k <- switch(opt$k,
 gamma <- switch(opt$type,
                 cauchy = 1,
                 cauchyAff = 1,
-                tdistDeg2 = 1 / 2,
                 tdistDeg4 = 1 / 4,
                 rlang::abort("Invalid distribution type")
 )
@@ -110,13 +109,13 @@ for (i in 1:s) {
   elliptical_err[i] <- compute_error(as.matrix(real),
                                      e_est,
                                      m,
-                                     10,
+                                     100,
                                      gamma,
                                      sigma) / p
   depth_err[i] <- tryCatch(compute_error(as.matrix(real),
                                          d_est,
                                          m,
-                                         10,
+                                         100,
                                          gamma,
                                          sigma),
                            error = function(err) NA) / p

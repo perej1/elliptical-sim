@@ -36,13 +36,14 @@ est <- robustbase::covMcd(sample, alpha = 0.5)
 
 # Compute real and estimated quantile regions
 data_list <- as.list(rep(NA, length(p)))
-for (i in 1:length(p)) {
-  estimate <- elliptical_extreme_qregion(sample, est$center, est$cov, p[i], k, m)
+for (i in seq_along(p)) {
+  estimate <- elliptical_extreme_qregion(sample, est$center, est$cov, p[i], k,
+                                         m)
   real <- clover_contour_p(p[i], m)
-  
+
   colnames(estimate) <- c("x", "y")
   colnames(real) <- c("x", "y")
-  
+
   data_list[[i]] <- bind_rows(as_tibble(real), as_tibble(estimate)) %>%
     mutate(group = rep(paste0(c("real", "estimate"), i), each = 1000))
 }
