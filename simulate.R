@@ -71,10 +71,10 @@ for (i in 1:s) {
     select(num_range(c("x", "y"), i)) %>%
     as.matrix
   est <- robustbase::covMcd(data, alpha = 0.5)
-  
+
   e_i <- elliptical_extreme_qregion(data, mu, est$cov, p, k, m)
   elliptical_estimates[[i]] <- e_i
-  
+
   d_i <- depth_extreme_qregion(data, p, k, m)
   depth_estimates[[i]] <- d_i
   cli::cli_progress_update()
@@ -96,11 +96,6 @@ real <- tdist_extreme_region(sigma, gamma, p, m)
 colnames(real) <- c("x", "y")
 real <- tibble::as_tibble(real)
 
-# Density function
-f <- function (x) {
-  dmvt(x, mu, diag(2), 1 / gamma, log = FALSE)
-}
-
 # Calculate errors
 elliptical_err <- rep(NA, s)
 depth_err <- rep(NA, s)
@@ -112,8 +107,18 @@ for (i in 1:s) {
   d_est <- depth_estimates %>%
     select(num_range(c("x", "y"), i)) %>%
     as.matrix
-  elliptical_err[i] <- compute_error(as.matrix(real), e_est, m, 10, f, sigma)$res / p
-  depth_err[i] <- tryCatch(compute_error(as.matrix(real), d_est, m, 10, f, sigma)$res,
+  elliptical_err[i] <- compute_error(as.matrix(real),
+                                     e_est,
+                                     m,
+                                     10,
+                                     gamma,
+                                     sigma) / p
+  depth_err[i] <- tryCatch(compute_error(as.matrix(real),
+                                         d_est,
+                                         m,
+                                         10,
+                                         gamma,
+                                         sigma),
                            error = function(err) NA) / p
   cli::cli_progress_update()
 }
@@ -129,22 +134,22 @@ filename <- paste0("type_", opt$type,
                    )
 
 readr::write_csv(elliptical_estimates,
-                 paste0("data/elliptical-estimates/", filename)
+                 paste0("sim-data/elliptical-estimates/", filename)
                  )
 
 readr::write_csv(depth_estimates,
-                 paste0("data/depth-estimates/", filename)
+                 paste0("sim-data/depth-estimates/", filename)
                  )
 
 readr::write_csv(errors,
-                 paste0("data/errors/", filename)
+                 paste0("sim-data/errors/", filename)
 )
 
 filename <- paste0("type_", opt$type, "_p_", opt$p, ".csv")
-readr::write_csv(real, paste0("data/real-regions/", filename))
+readr::write_csv(real, paste0("sim-data/real-regions/", filename))
 
 filename <- paste0("type_", opt$type,
                    "_n_", opt$n,
                    "_seed_", opt$seed, ".csv"
                    )
-readr::write_csv(samples, paste0("data/samples/", filename))
+readr::write_csv(samples, paste0("sim-data/samples/", filename))

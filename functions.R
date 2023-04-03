@@ -1,7 +1,9 @@
+# All the needed packages and helper functions
 library(optparse)
 library(mvtnorm)
 library(ggplot2)
 suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(testthat))
 
 
 #' Generate m equally spaced points from a circle
@@ -273,4 +275,21 @@ compute_error <- function(real, estimate, m1, m2, gamma, sigma) {
     res <- res + abs(r_real[i] - r_estimate[i]) * resi
   }
   2 * pi / (m1 * m2) * res
+}
+
+plot_data <- function(data) {
+  ggplot(data, aes(x = x, y = y)) +
+    geom_path(aes(group = group, linetype = group), show.legend = FALSE) +
+    coord_fixed() +
+    theme(axis.title = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          legend.background = element_blank(),
+          legend.key = element_blank(),
+          legend.key.size = unit(1, "cm"),
+          legend.text = element_text(size = 15),
+          axis.text = element_text(size = 15)) +
+    scale_linetype_manual(name = NULL,
+                          values = c("real" = "solid", "ellipse" = "dashed",
+                                     "depth" = "dotted"))
 }

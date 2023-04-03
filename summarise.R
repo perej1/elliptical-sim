@@ -53,7 +53,7 @@ ellipse_max <- elliptical_estimates %>%
   select(num_range(c("x", "y"), which.max(errors$elliptical))) %>%
   rename(x = 1, y = 2)
 ellipse_median <- elliptical_estimates %>%
-  select(num_range(c("x", "y"), 
+  select(num_range(c("x", "y"),
                    which.min(abs(errors$elliptical - medians["elliptical"])))
          ) %>%
   rename(x = 1, y = 2)
@@ -65,7 +65,7 @@ depth_max <- depth_estimates %>%
   select(num_range(c("x", "y"), which.max(errors$depth))) %>%
   rename(x = 1, y = 2)
 depth_median <- depth_estimates %>%
-  select(num_range(c("x", "y"), 
+  select(num_range(c("x", "y"),
                    which.min(abs(errors$depth - medians["depth"])))
   ) %>%
   rename(x = 1, y = 2)
