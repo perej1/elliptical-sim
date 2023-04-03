@@ -3,6 +3,4 @@
 renv/library/
 renv/settings.dcf
 .Rproj.user
-clover-figures/
-sim-data/
-summary-data/
+
