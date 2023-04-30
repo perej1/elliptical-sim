@@ -51,6 +51,8 @@ gamma <- switch(opt$type,
                 rlang::abort("Invalid distribution type")
 )
 
+f <- function(x) dmvt(x, mu, sigma, df = 1 / gamma, log = FALSE)
+  
 # Simulate s samples from distribution specified by type
 set.seed(opt$seed)
 samples <- purrr::map(1:s, \(i) rmvt(opt$n, sigma, 1 / gamma, mu))
@@ -106,18 +108,8 @@ for (i in 1:s) {
   d_est <- depth_estimates %>%
     select(num_range(c("x", "y"), i)) %>%
     as.matrix
-  elliptical_err[i] <- compute_error(as.matrix(real),
-                                     e_est,
-                                     m,
-                                     100,
-                                     gamma,
-                                     sigma) / p
-  depth_err[i] <- tryCatch(compute_error(as.matrix(real),
-                                         d_est,
-                                         m,
-                                         100,
-                                         gamma,
-                                         sigma),
+  elliptical_err[i] <- compute_error(as.matrix(real), e_est, m, 100, f) / p
+  depth_err[i] <- tryCatch(compute_error(as.matrix(real), d_est, m, 100, f),
                            error = function(err) NA) / p
   cli::cli_progress_update()
 }
