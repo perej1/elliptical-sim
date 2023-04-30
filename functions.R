@@ -230,42 +230,38 @@ clover_contour_p <- function(p, m) {
 #' @param estimate Double matrix, describes estimated quantile region.
 #' @param m1 Integer, discretization level for the angle.
 #' @param m2 Integer, discretization level for the radius.
-#' @param gamma Double, extreme value index.
-#' @param sigma Double matrix, theoretical scatter matrix.
+#' @param f density function.
 #'
 #' @return Double, estimation error.
-compute_error <- function(real, estimate, m1, m2, gamma, sigma) {
-  f <- function(x) {
-    dmvt(x, mu, diag(2), 1 / gamma, log = FALSE)
-  }
-
-  l <- solve(sqrtmat(sigma))
-  estimate <- estimate %*% t(l)
-  real <- real %*% t(l)
+compute_error <- function(real, estimate, m1, m2, f) {
   res <- 0
-
-  r_real <- apply(real, 1, norm, type = "2")
-  r_estimate <- apply(estimate, 1, norm, type = "2")
-
-  ball_real <- sweep(real, 1, r_real, "/")
-  ball_estimate <- sweep(estimate, 1, r_estimate, "/")
-
+  
+  ball <- get_ball_mesh(m1)
   theta <- rep(NA, m1)
   for (i in 1:m1) {
-    theta[i] <- acos(ball_real[i, 1])
-    if (ball_real[i, 2] < 0) {
+    theta[i] <- acos(ball[i, 1])
+    if (ball[i, 2] < 0) {
       theta[i] <- 2 * pi - theta[i]
     }
   }
+  
+  r_real <- apply(real, 1, norm, type = "2")
+  r_estimate <- apply(estimate, 1, norm, type = "2")
+  
+  ball_real <- sweep(real, 1, r_real, "/")
+  ball_estimate <- sweep(estimate, 1, r_estimate, "/")
+  
+  ind_real <- apply(ball %*% t(ball_real), 1, which.max)
+  ind_estimate <- apply(ball %*% t(ball_estimate), 1, which.max)
 
-  ind <- apply(ball_real %*% t(ball_estimate), 1, which.max)
-  r_estimate <- r_estimate[ind]
-
+  r_real <- r_real[ind_real]
+  r_estimate <- r_estimate[ind_estimate]
+  
   for (i in 1:m1) {
     r_seq <- seq(min(r_estimate[i], r_real[i]),
                  max(r_estimate[i], r_real[i]),
                  length.out = m2)
-
+    
     x <- r_seq * cos(theta[i])
     y <- r_seq * sin(theta[i])
     resi <- 0
