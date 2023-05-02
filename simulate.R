@@ -52,7 +52,7 @@ gamma <- switch(opt$type,
 )
 
 f <- function(x) dmvt(x, mu, sigma, df = 1 / gamma, log = FALSE)
-  
+
 # Simulate s samples from distribution specified by type
 set.seed(opt$seed)
 samples <- purrr::map(1:s, \(i) rmvt(opt$n, sigma, 1 / gamma, mu))

@@ -15,7 +15,7 @@ test_that("area of a circle is calculated correctly", {
   ball1 <- get_ball_mesh(m1)
   ball2 <- 2 * ball1
   err <- pi * (2^2 - 1)
-  err_est <- compute_error(ball1, ball2, m1, m2, function (x) 1)
+  err_est <- compute_error(ball1, ball2, m1, m2, function(x) 1)
   print(paste0("Real: ", err))
   print(paste0("Estimate: ", err_est))
   expect_equal(err, err_est, tolerance = tol)
@@ -35,7 +35,7 @@ test_that("area of a square is calculated correctly", {
                      ncol = 2, byrow = FALSE)
   square <- rbind(square_l, square_r, square_d, square_u)
   err <- 4 - pi
-  err_est <- compute_error(square, ball1, m1, m2, function (x) 1)
+  err_est <- compute_error(square, ball1, m1, m2, function(x) 1)
   print(paste0("Real: ", err))
   print(paste0("Estimate: ", err_est))
   expect_equal(err, err_est, tolerance = tol)
@@ -48,25 +48,25 @@ test_that("area of an ellipse is calculated correctly", {
   sigma1 <- 2 * matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2)
   lambda1 <- sqrtmat(sigma1)
   ellipse1 <- ball1 %*% t(lambda1)
-  
+
   sigma2 <- matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2)
   lambda2 <- sqrtmat(sigma2)
   ellipse2 <- ball1 %*% t(lambda2)
-  
+
   err <- pi * (prod(eigen(lambda1)$values) - prod(eigen(lambda2)$values))
-  err_est <- compute_error(ellipse1, ellipse2, m1, m2, function (x) 1)
+  err_est <- compute_error(ellipse1, ellipse2, m1, m2, function(x) 1)
   print(paste0("Real: ", err))
   print(paste0("Estimate: ", err_est))
   expect_equal(err, err_est, tolerance = tol)
-  
+
   err <- pi * (prod(eigen(lambda1)$values) - 1)
-  err_est <- compute_error(ellipse1, ball1, m1, m2, function (x) 1)
+  err_est <- compute_error(ellipse1, ball1, m1, m2, function(x) 1)
   print(paste0("Real: ", err))
   print(paste0("Estimate: ", err_est))
   expect_equal(err, err_est, tolerance = tol)
-  
+
   err <- pi * (10^2 - prod(eigen(lambda1)$values))
-  err_est <- compute_error(ellipse1, ball2, m1, m2, function (x) 1)
+  err_est <- compute_error(ellipse1, ball2, m1, m2, function(x) 1)
   print(paste0("Real: ", err))
   print(paste0("Estimate: ", err_est))
   expect_equal(err, err_est, tolerance = tol)

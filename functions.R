@@ -124,7 +124,7 @@ depth_extreme_qregion <- function(data, p, k, m) {
 }
 
 
-#' Density function of the clover distribution
+#' Density function for the clover distribution
 #'
 #' @param x Double, x-coordinate.
 #' @param y Double, y-coordinate.
@@ -222,9 +222,7 @@ clover_contour_p <- function(p, m) {
 #' Estimate \eqn{\mathbb{P}(X \in Q \triangle \hat Q)}, where \eqn{Q}
 #' is the theoretical quantile region and \eqn{\hat Q} is the estimate.
 #' Estimation of the integral \eqn{\mathbb{P}(X \in Q \triangle \hat Q)} is done
-#' with Riemann sum in ball coordinates. Function restricts to the case where
-#' underlying distribution is a t-distribution, since this suffices for our
-#' simulations.
+#' with Riemann sum in polar coordinates.
 #'
 #' @param real Double matrix, describes theoretical quantile region.
 #' @param estimate Double matrix, describes estimated quantile region.
@@ -235,7 +233,7 @@ clover_contour_p <- function(p, m) {
 #' @return Double, estimation error.
 compute_error <- function(real, estimate, m1, m2, f) {
   res <- 0
-  
+
   ball <- get_ball_mesh(m1)
   theta <- rep(NA, m1)
   for (i in 1:m1) {
@@ -244,24 +242,24 @@ compute_error <- function(real, estimate, m1, m2, f) {
       theta[i] <- 2 * pi - theta[i]
     }
   }
-  
+
   r_real <- apply(real, 1, norm, type = "2")
   r_estimate <- apply(estimate, 1, norm, type = "2")
-  
+
   ball_real <- sweep(real, 1, r_real, "/")
   ball_estimate <- sweep(estimate, 1, r_estimate, "/")
-  
+
   ind_real <- apply(ball %*% t(ball_real), 1, which.max)
   ind_estimate <- apply(ball %*% t(ball_estimate), 1, which.max)
 
   r_real <- r_real[ind_real]
   r_estimate <- r_estimate[ind_estimate]
-  
+
   for (i in 1:m1) {
     r_seq <- seq(min(r_estimate[i], r_real[i]),
                  max(r_estimate[i], r_real[i]),
                  length.out = m2)
-    
+
     x <- r_seq * cos(theta[i])
     y <- r_seq * sin(theta[i])
     resi <- 0
@@ -278,7 +276,7 @@ compute_error <- function(real, estimate, m1, m2, f) {
 #'
 #' @param data Preprocessed data to plot, see summarise.R for preprocessing.
 #'
-#' @return The ggplot object
+#' @return The ggplot object.
 plot_data <- function(data) {
   ggplot(data, aes(x = x, y = y)) +
     geom_path(aes(group = group, linetype = group), show.legend = FALSE) +
