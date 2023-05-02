@@ -2,13 +2,13 @@
 source("functions.R")
 
 option_list <- list(
-  make_option("--type", type = "character", default = "cauchyAff",
+  make_option("--type", type = "character", default = "tdistDeg4",
               help = "Distribution type"),
   make_option("--n", type = "integer", default = 1000,
               help = "Sample size"),
-  make_option("--p", type = "character", default = "low",
+  make_option("--p", type = "character", default = "high",
               help = "Probability mass outside quantile region"),
-  make_option("--k", type = "character", default = "small",
+  make_option("--k", type = "character", default = "large",
               help = "Sample size of the tail"),
   make_option("--seed", type = "integer", default = 278,
               help = "Set seed for sampling")
@@ -33,7 +33,7 @@ errors <- readr::read_csv(paste0("sim-data/errors/",
                                  filename),
                           show_col_types = FALSE)
 
-filename <- paste0("type_", opt$type, "_p_", opt$p, ".csv")
+filename <- paste0("type_", opt$type, "_n_", opt$n, "_p_", opt$p, ".csv")
 real <- readr::read_csv(paste0("sim-data/real-regions/", filename),
                         show_col_types = FALSE)
 

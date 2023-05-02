@@ -2,13 +2,13 @@
 source("functions.R")
 
 option_list <- list(
-  make_option("--type", type = "character", default = "cauchyAff",
+  make_option("--type", type = "character", default = "tdistDeg4",
               help = "Distribution type"),
   make_option("--n", type = "integer", default = 1000,
               help = "Sample size"),
-  make_option("--p", type = "character", default = "low",
+  make_option("--p", type = "character", default = "high",
               help = "Probability mass outside quantile region"),
-  make_option("--k", type = "character", default = "small",
+  make_option("--k", type = "character", default = "large",
               help = "Sample size of the tail"),
   make_option("--seed", type = "integer", default = 278,
               help = "Set seed for sampling")
@@ -121,26 +121,23 @@ filename <- paste0("type_", opt$type,
                    "_n_", opt$n,
                    "_seed_", opt$seed,
                    "_p_", opt$p,
-                   "_k_", opt$k, ".csv"
-                   )
+                   "_k_", opt$k, ".csv")
 
 readr::write_csv(elliptical_estimates,
-                 paste0("sim-data/elliptical-estimates/", filename)
-                 )
+                 paste0("sim-data/elliptical-estimates/", filename))
 
 readr::write_csv(depth_estimates,
-                 paste0("sim-data/depth-estimates/", filename)
-                 )
+                 paste0("sim-data/depth-estimates/", filename))
 
 readr::write_csv(errors,
-                 paste0("sim-data/errors/", filename)
-)
+                 paste0("sim-data/errors/", filename))
 
-filename <- paste0("type_", opt$type, "_p_", opt$p, ".csv")
+filename <- paste0("type_", opt$type,
+                   "_n_", opt$n,
+                   "_p_", opt$p, ".csv")
 readr::write_csv(real, paste0("sim-data/real-regions/", filename))
 
 filename <- paste0("type_", opt$type,
                    "_n_", opt$n,
-                   "_seed_", opt$seed, ".csv"
-                   )
+                   "_seed_", opt$seed, ".csv")
 readr::write_csv(samples, paste0("sim-data/samples/", filename))
