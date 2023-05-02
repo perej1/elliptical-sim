@@ -1,50 +1,66 @@
 # elliptical-sim
 
 Simulation study for an article about multivariate extreme quantile
-region estimation. Two things are done in simulations:
+region estimation. Two things are done in the simulations:
 
-1. Performance of an elliptical extreme quantile region estimator $\hat Q_{p_n}$
-is compared to a competing extreme quantile region estimator $\bar Q_{p_n}$
-based on halfspace depth. Relative errors $\mathbb{P}(X\in\hat Q_{p_n}\triangle
-Q_{p_n})/p_n$ and $\mathbb{P}(X\in\bar Q_{p_n}\triangle Q_{p_n})/p_n$ are
-computed for each simulation scenario. Relative errors for each scenario are
-saved in directory `sim-data/errors`. Additionally, samples from which estimates
-are calculated, true quantile regions $Q_{p_n}$, estimates $\hat Q_{p_n}$ and
-estimates $\bar Q_{p_n}$ are saved in directories in `sim-data/` for
-reproducibility. On the other hand, directory `summmary-data/` includes some
-statistics such as minimum, median and maximum error for each scenario. Also,
-figures corresponding to minimum, median and maximum relative errors are
-included. Below is the figure corresponding to the median relative error for a
-certain scenario. In the figure solid line represents the true quantile region
-$Q_{p_n}$, dashed line represents estimate $\hat Q_{p_n}$ and dotted line
-represents the competitor $\bar Q_{p_n}$.
-![image](summary-data/figures-median/type_cauchyAff_n_5000_seed_278_p_high_k_large.jpg)
+1. Performance of an elliptical extreme quantile region estimator is compared to
+a competing extreme quantile region estimator based on halfspace depth [1].
+Relative errors for both estimators are computed for each simulation scenario,
+and are then saved in the directory `sim-data/errors/`. Additionally, directory
+`sim-data/` includes the following data for reproducibility:
 
-2. An example with nonelliptical quantile regions is constructed. Here we use
-$\hat Q_{p_n}$ for estimation, and thus, estimated quantile regions have an
-elliptical shape. Figures similar to the following are produced.
-![image](clover-figures/n_5000_k_large.jpg) On the above figure black dots
-represent observations, dashed lines represent estimates $\hat Q_{p_n}$ and
-solid lines represent true quantile regions $Q_{p_n}$.
+   - true quantile regions,
+   - estimates (elliptical and depth) and
+   - samples, from which the estimates are calculated.
+
+   On the other hand, directory `summmary-data/` includes some statistics such
+as minimum, median and maximum relative errors for each scenario. Also, figures
+corresponding to minimum, median and maximum relative errors are included.
+
+2. An example with clover shaped quantile regions is constructed. Here we use
+elliptical extreme quantile region estimator for estimation, and thus, estimated
+quantile regions have an elliptical shape, even though true quantile regions are
+not elliptically shaped.
+
+## Requirements
+
+1. Clone or unzip the repository.
+    ```
+    git clone https://github.com/perej1/elliptical-sim.git
+    ```
+
+2. Install required packages by running the following R command in the project's
+   root folder (R package `renv` has to be installed).
+    ```
+    renv::restore()
+    ```
 
 ## Running the simulation
 
-1. Clone or unzip the repository.
+In total there are six R scripts.
+
+- `simulate.R` - Performs simulations for selected parameters.
+- `simulate-batch.R` - Performs simulations for sets of different parameters.
+  Additionally, this script is responsible for argument parsing.
+- `summarise.R` - Computes minimum, median and maximum relative errors.
+  Additionally, the script outputs figures corresponding to minimum, median and
+  maximum relative errors.
+- `functions.R` - Includes all the required packages and functions.
+- `test-compute_error.R` - Unit tests for the function `compute_error.R`.
+
+Run the script `simulate-batch.R` with desired arguments. For example, below we run simulations as a whole.
 
 ```
-git clone https://github.com/perej1/elliptical-sim.git
+Rscript simulate-batch.R --simulate TRUE --summarise TRUE --clover TRUE
 ```
 
-2. Install required packages by running the following R command in the project's
-   root folder.
-
+For example, if you want to exclude clover example, just run the following.
 ```
-renv::restore()
-```
-3. Run the script `simulate-batch.R` with desired parameters. For example, below we run simulations as a whole.
-
-```
-Rscript simulate-batch.R --simulate TRUE --plot TRUE --clover TRUE
+Rscript simulate-batch.R --simulate TRUE --summarise TRUE --clover FALSE
 ```
 
 ## References
+
+[1] Y. He, J. H. Einmahl, Estimation of extreme depth-based quantile regions,
+Journal of the Royal Statistical Society: Series B (Statistical Methodology) 79
+(2017) 449–461.
