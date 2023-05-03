@@ -48,7 +48,8 @@ In total there are six R scripts.
 - `functions.R` - Includes all the required packages and functions.
 - `test-compute_error.R` - Unit tests for the function `compute_error.R`.
 
-Run the script `simulate-batch.R` with desired arguments. For example, below we run simulations as a whole.
+Run the script `simulate-batch.R` with desired arguments. For example, below we
+run simulations as a whole.
 
 ```
 Rscript simulate-batch.R --simulate TRUE --summarise TRUE --clover TRUE
