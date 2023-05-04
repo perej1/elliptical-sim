@@ -52,7 +52,7 @@ Run the script `simulate-batch.R` with desired arguments. For example, below we
 run simulations as a whole.
 
 ```
-Rscript simulate-batch.R --simulate TRUE --summarise TRUE --clover TRUE
+Rscript simulate-batch.R
 ```
 
 For example, if you want to exclude clover example, just run the following.

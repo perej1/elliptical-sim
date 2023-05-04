@@ -2,9 +2,9 @@
 library(optparse)
 
 option_list <- list(
-  make_option("--simulate", type = "logical", default = FALSE,
+  make_option("--simulate", type = "logical", default = TRUE,
               help = "Simulate or not"),
-  make_option("--summarise", type = "logical", default = FALSE,
+  make_option("--summarise", type = "logical", default = TRUE,
               help = "Summarise or not"),
   make_option("--clover", type = "logical", default = TRUE,
               help = "Generate clover example or not")
