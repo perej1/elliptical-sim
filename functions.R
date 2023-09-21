@@ -6,14 +6,29 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(testthat))
 
 
-#' Generate m equally spaced points from a circle
+#' Generate m uniformly distributed points on a (d - 1)-sphere
 #'
+#' @param d Integer, dimension of the ball, must be equal to or greater than 2.
 #' @param m Integer, number of points.
 #'
 #' @return Double matrix of points, one row represents one point.
-get_ball_mesh <- function(m) {
-  w <- seq(0, 2 * pi, length.out = m)
-  cbind(cos(w), sin(w))
+get_ball_mesh <- function(d, m) {
+  coord <- matrix(NA, nrow = m, ncol = d)
+  w <- matrix(c(rep(seq(0, pi, length.out = m), d - 2),
+                seq(0, 2 * pi, length.out = m)),
+              nrow = m,
+              ncol = d - 1,
+              byrow = FALSE)
+  
+  coord[, 1] <- cos(w[, 1])
+  coord[, d] <- apply(sin(w), 1, prod)
+  
+  if (d > 2) {
+    for (i in 2:(d - 1)) {
+      coord[, i] <- apply(as.matrix(sin(w[, 1:(i - 1)])), 1, prod) * cos(w[, i])
+    }
+  }
+  coord
 }
 
 
