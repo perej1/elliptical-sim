@@ -6,29 +6,44 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(testthat))
 
 
+#' Convert a spherical coordinate to a Cartesian coordinate
+#'
+#' @param radius Double, radius of the point.
+#' @param theta Double vector, d - 1 angular coordinates. 
+#'
+#' @return Double vector, d coordinates giving the location of the point in
+#'   space.
+ball_to_cartesian <- function(radius, theta) {
+  d <- length(theta) + 1
+  cartesian <- rep(NA, d)
+  cartesian[1] <- cos(theta[1])
+  cartesian[d] <- prod(sin(theta))
+  
+  if (d > 2) {
+    for (i in 2:(d - 1)) {
+      cartesian[i] <- prod(sin(theta[1:(i - 1)])) * cos(theta[i])
+    }
+  }
+  radius * cartesian
+}
+
+
 #' Generate m uniformly distributed points on a (d - 1)-sphere
 #'
 #' @param d Integer, dimension of the ball, must be equal to or greater than 2.
 #' @param m Integer, number of points.
 #'
-#' @return Double matrix of points, one row represents one point.
+#' @return List of two double matrices, the first gives the ball in spherical
+#'   and the second in Cartesian coordinates. One row represents one point.
 get_ball_mesh <- function(d, m) {
-  coord <- matrix(NA, nrow = m, ncol = d)
-  w <- matrix(c(rep(seq(0, pi, length.out = m), d - 2),
-                seq(0, 2 * pi, length.out = m)),
-              nrow = m,
-              ncol = d - 1,
-              byrow = FALSE)
+  spherical <- matrix(c(rep(seq(0, pi, length.out = m), d - 2),
+                        seq(0, 2 * pi, length.out = m)),
+                      nrow = m,
+                      ncol = d - 1,
+                      byrow = FALSE)
   
-  coord[, 1] <- cos(w[, 1])
-  coord[, d] <- apply(sin(w), 1, prod)
-  
-  if (d > 2) {
-    for (i in 2:(d - 1)) {
-      coord[, i] <- apply(as.matrix(sin(w[, 1:(i - 1)])), 1, prod) * cos(w[, i])
-    }
-  }
-  coord
+  list(spherical = spherical,
+       cartesian = t(apply(spherical, 1, ball_to_cartesian, r = 1)))
 }
 
 
@@ -148,49 +163,44 @@ depth_extreme_qregion <- function(data, p, k, m) {
 #'
 #' @param real Double matrix, describes theoretical quantile region.
 #' @param estimate Double matrix, describes estimated quantile region.
-#' @param m1 Integer, discretization level for the angle.
-#' @param m2 Integer, discretization level for the radius.
-#' @param f density function.
+#' @param m_angle Integer, discretization level for the angle.
+#' @param m_radius Integer, discretization level for the radius.
+#' @param f Density function.
 #'
 #' @return Double, estimation error.
-compute_error <- function(real, estimate, m1, m2, f) {
+compute_error <- function(real, estimate, m_angle, m_radius, f) {
+  d <- ncol(real)
   res <- 0
-
-  ball <- get_ball_mesh(m1)
-  theta <- rep(NA, m1)
-  for (i in 1:m1) {
-    theta[i] <- acos(ball[i, 1])
-    if (ball[i, 2] < 0) {
-      theta[i] <- 2 * pi - theta[i]
-    }
-  }
-
+  
+  ball <- get_ball_mesh(d, m_angle)
+  
   r_real <- apply(real, 1, norm, type = "2")
   r_estimate <- apply(estimate, 1, norm, type = "2")
-
+  
   ball_real <- sweep(real, 1, r_real, "/")
   ball_estimate <- sweep(estimate, 1, r_estimate, "/")
-
-  ind_real <- apply(ball %*% t(ball_real), 1, which.max)
-  ind_estimate <- apply(ball %*% t(ball_estimate), 1, which.max)
-
+  
+  ind_real <- apply(ball$cartesian %*% t(ball_real), 1, which.max)
+  ind_estimate <- apply(ball$cartesian %*% t(ball_estimate), 1, which.max)
+  
   r_real <- r_real[ind_real]
   r_estimate <- r_estimate[ind_estimate]
-
-  for (i in 1:m1) {
+  
+  for (i in 1:m_angle) {
+    theta <- ball$spherical[i, ]
     r_seq <- seq(min(r_estimate[i], r_real[i]),
                  max(r_estimate[i], r_real[i]),
-                 length.out = m2)
-
-    x <- r_seq * cos(theta[i])
-    y <- r_seq * sin(theta[i])
+                 length.out = m_radius)
+    
+    cartesian <- sapply(r_seq, ball_to_cartesian, theta = theta)
     resi <- 0
-    for (j in 1:m2) {
-      resi <- resi + f(c(x[j], y[j])) * r_seq[j]
+    for (j in 1:m_radius) {
+      jacobian_det <- r_seq[j]^(d - 1) * ifelse(d > 2, sin(theta[1:(d - 2)])^((d - 2):1), 1)
+      resi <- resi + f(cartesian[j]) * jacobian_det
     }
     res <- res + abs(r_real[i] - r_estimate[i]) * resi
   }
-  2 * pi / (m1 * m2) * res
+  2 * pi^(d-1) / (m_angle * m_radius) * res
 }
 
 
