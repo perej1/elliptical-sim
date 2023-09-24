@@ -13,7 +13,7 @@ suppressPackageStartupMessages(library(testthat))
 #'
 #' @return Double vector, d coordinates giving the location of the point in
 #'   space.
-ball_to_cartesian <- function(radius, theta) {
+spherical_to_cartesian <- function(radius, theta) {
   d <- length(theta) + 1
   cartesian <- rep(NA, d)
   cartesian[1] <- cos(theta[1])
@@ -36,14 +36,18 @@ ball_to_cartesian <- function(radius, theta) {
 #' @return List of two double matrices, the first gives the ball in spherical
 #'   and the second in Cartesian coordinates. One row represents one point.
 get_ball_mesh <- function(d, m) {
-  spherical <- matrix(c(rep(seq(0, pi, length.out = m), d - 2),
-                        seq(0, 2 * pi, length.out = m)),
-                      nrow = m,
-                      ncol = d - 1,
-                      byrow = FALSE)
-  
+  mm <- ceiling(m^{1/(d - 1)})
+  angle_list <- vector("list", d - 1)
+  angle_list[[d - 1]] <- seq(0, 2 * pi, length.out = mm)
+  if (d > 2) {
+    for (i in 1:(d - 2)) {
+      angle_list[[i]] <- seq(0, pi, length.out = mm)
+    }
+  }
+  spherical <- as.matrix(expand.grid(angle_list))
   list(spherical = spherical,
-       cartesian = t(apply(spherical, 1, ball_to_cartesian, r = 1)))
+       cartesian = t(apply(spherical, 1, spherical_to_cartesian, r = 1)),
+       m_effective = nrow(spherical))
 }
 
 
@@ -169,10 +173,12 @@ depth_extreme_qregion <- function(data, p, k, m) {
 #'
 #' @return Double, estimation error.
 compute_error <- function(real, estimate, m_angle, m_radius, f) {
+  # real and estimate must have same amount of points
   d <- ncol(real)
   res <- 0
   
   ball <- get_ball_mesh(d, m_angle)
+  m_angle <- ball$m_effective
   
   r_real <- apply(real, 1, norm, type = "2")
   r_estimate <- apply(estimate, 1, norm, type = "2")
@@ -180,9 +186,13 @@ compute_error <- function(real, estimate, m_angle, m_radius, f) {
   ball_real <- sweep(real, 1, r_real, "/")
   ball_estimate <- sweep(estimate, 1, r_estimate, "/")
   
-  ind_real <- apply(ball$cartesian %*% t(ball_real), 1, which.max)
-  ind_estimate <- apply(ball$cartesian %*% t(ball_estimate), 1, which.max)
-  
+  ind_real <- rep(NA, length(r_real))
+  ind_estimate <- rep(NA, length(r_estimate))
+  for (i in 1:length(r_real)) {
+    ind_real[i] <- which.max(ball$cartesian %*% ball_real[i, ])
+    ind_estimate[i] <- which.max(ball$cartesian %*% ball_estimate[i, ])
+  }
+
   r_real <- r_real[ind_real]
   r_estimate <- r_estimate[ind_estimate]
   
@@ -192,11 +202,12 @@ compute_error <- function(real, estimate, m_angle, m_radius, f) {
                  max(r_estimate[i], r_real[i]),
                  length.out = m_radius)
     
-    cartesian <- sapply(r_seq, ball_to_cartesian, theta = theta)
+    cartesian <- sapply(r_seq, spherical_to_cartesian, theta = theta)
     resi <- 0
+    jdet_angle <- ifelse(d > 2, sin(theta[1:(d - 2)])^((d - 2):1), 1)
     for (j in 1:m_radius) {
-      jacobian_det <- r_seq[j]^(d - 1) * ifelse(d > 2, sin(theta[1:(d - 2)])^((d - 2):1), 1)
-      resi <- resi + f(cartesian[j]) * jacobian_det
+      jdet <- r_seq[j]^(d - 1) * jdet_angle
+      resi <- resi + f(cartesian[j]) * jdet
     }
     res <- res + abs(r_real[i] - r_estimate[i]) * resi
   }

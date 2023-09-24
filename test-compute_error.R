@@ -3,8 +3,8 @@ source("functions.R")
 
 
 set.seed(278)
-m_angle <- 10
-m_radius <- 10
+m_angle <- 1000
+m_radius <- 3
 mu <- rep(0, 2)
 gamma <- c(0.25, 1)
 tol <- 0.1
@@ -12,10 +12,10 @@ tol <- 0.1
 
 test_that("Volume of a sphere is calculated correctly", {
   for (d in 2:3) {
-    ball1 <- get_ball_mesh(d, m_angle^d)$cartesian
-    ball2 <- 2 * ball1
-    err <- (2^d - 1) * pi^(d / 2) / gamma(d / 2 + 1)
-    err_est <- compute_error(ball1, ball2, m_angle^d, m_radius^(d-1), function(x) 1)
+    ball1 <- get_ball_mesh(d, m_angle)$cartesian
+    ball2 <- 1.1 * ball1
+    err <- (1.1^d - 1) * pi^(d / 2) / gamma(d / 2 + 1)
+    err_est <- compute_error(ball1, ball2, m_angle, m_radius, function(x) 1)
     print(paste0("Real: ", err))
     print(paste0("Estimate: ", err_est))
     expect_equal(err, err_est, tolerance = tol)
