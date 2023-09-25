@@ -78,7 +78,8 @@ sqrtmat <- function(sigma) {
 #'
 #' @return Double matrix, m points from the boundary of the quantile region.
 tdist_extreme_region <- function(sigma, gamma, p, m) {
-  w <- get_ball_mesh(m)
+  d <- ncol(sigma)
+  w <- get_ball_mesh(d, m)
   lambda <- sqrtmat(d * stats::qf(1 - p, d, 1 / gamma) * sigma)
   w %*% t(lambda)
 }
@@ -172,13 +173,14 @@ depth_extreme_qregion <- function(data, p, k, m) {
 #' @param f Density function.
 #'
 #' @return Double, estimation error.
-compute_error <- function(real, estimate, m_angle, m_radius, f) {
-  # real and estimate must have same amount of points
+compute_error <- function(real, estimate, m_radius, f) {
+  m_angle <- nrow(real)
   d <- ncol(real)
-  res <- 0
-  
   ball <- get_ball_mesh(d, m_angle)
-  m_angle <- ball$m_effective
+  if (m_angle != nrow(estimate)) {
+    rlang::abort("`real`, `estimate`, and `ball` must have the same amount of points.")
+  }
+  res <- 0
   
   r_real <- apply(real, 1, norm, type = "2")
   r_estimate <- apply(estimate, 1, norm, type = "2")
@@ -186,20 +188,13 @@ compute_error <- function(real, estimate, m_angle, m_radius, f) {
   ball_real <- sweep(real, 1, r_real, "/")
   ball_estimate <- sweep(estimate, 1, r_estimate, "/")
   
-  ind_real <- rep(NA, length(r_real))
-  ind_estimate <- rep(NA, length(r_estimate))
-  for (i in 1:length(r_real)) {
-    ind_real[i] <- which.max(ball$cartesian %*% ball_real[i, ])
-    ind_estimate[i] <- which.max(ball$cartesian %*% ball_estimate[i, ])
-  }
-
-  r_real <- r_real[ind_real]
-  r_estimate <- r_estimate[ind_estimate]
-  
   for (i in 1:m_angle) {
     theta <- ball$spherical[i, ]
-    r_seq <- seq(min(r_estimate[i], r_real[i]),
-                 max(r_estimate[i], r_real[i]),
+    i_real <- which.max(ball$cartesian %*% ball_real[i, ])
+    i_estimate <- which.max(ball$cartesian %*% ball_estimate[i, ])
+    
+    r_seq <- seq(min(r_estimate[i_estimate], r_real[i_real]),
+                 max(r_estimate[i_estimate], r_real[i_real]),
                  length.out = m_radius)
     
     cartesian <- sapply(r_seq, spherical_to_cartesian, theta = theta)
