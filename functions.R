@@ -1,7 +1,11 @@
 # All the needed packages and helper functions
+library(tictoc)
 library(optparse)
 library(mvtnorm)
 library(ggplot2)
+library(purrr)
+library(future)
+library(furrr)
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(testthat))
 
@@ -197,16 +201,14 @@ compute_error <- function(real, estimate, m_radius, f) {
                  max(r_estimate[i_estimate], r_real[i_real]),
                  length.out = m_radius)
     
-    cartesian <- sapply(r_seq, spherical_to_cartesian, theta = theta)
+    cartesian <- t(sapply(r_seq, spherical_to_cartesian, theta = theta))
     resi <- 0
     jdet_angle <- ifelse(d > 2, sin(theta[1:(d - 2)])^((d - 2):1), 1)
-    for (j in 1:m_radius) {
-      jdet <- r_seq[j]^(d - 1) * jdet_angle
-      resi <- resi + f(cartesian[j]) * jdet
-    }
+    jdet <- r_seq^(d - 1) * jdet_angle
+    resi <- sum(apply(cartesian, 1, f) * jdet)
     res <- res + abs(r_real[i] - r_estimate[i]) * resi
   }
-  2 * pi^(d-1) / (m_angle * m_radius) * res
+  2 * pi^(d-1) / (m_angle * m_radius) * sum(res)
 }
 
 
