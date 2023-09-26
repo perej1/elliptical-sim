@@ -192,23 +192,12 @@ compute_error <- function(real, estimate, m_radius, f) {
   ball_real <- sweep(real, 1, r_real, "/")
   ball_estimate <- sweep(estimate, 1, r_estimate, "/")
   
-  ind_real <- rep(NA, m_angle)
-  ind_estimate <- rep(NA, m_angle)
-  for (i in 1:m_angle) {
-    i_real <- which.max(ball_real %*% ball$cartesian[i, ])
-    i_estimate <- which.max(ball_estimate %*% ball$cartesian[i, ])
-    
-    ind_real[i] <- i_real
-    ind_estimate[i] <- i_estimate
-  }
-  
-  r_real <- r_real[ind_real]
-  r_estimate <- r_estimate[ind_estimate]
-  
   for (i in 1:m_angle) {
     theta <- ball$spherical[i, ]
-    r_seq <- seq(min(r_estimate[i], r_real[i]),
-                 max(r_estimate[i], r_real[i]),
+    i_real <- which.max(ball_real %*% ball$cartesian[i, ])
+    i_estimate <- which.max(ball_estimate %*% ball$cartesian[i, ])
+    r_seq <- seq(min(r_estimate[i_estimate], r_real[i_real]),
+                 max(r_estimate[i_estimate], r_real[i_real]),
                  length.out = m_radius)
     
     cartesian <- t(sapply(r_seq, spherical_to_cartesian, theta = theta))
@@ -216,7 +205,7 @@ compute_error <- function(real, estimate, m_radius, f) {
     jdet_angle <- ifelse(d > 2, sin(theta[1:(d - 2)])^((d - 2):1), 1)
     jdet <- r_seq^(d - 1) * jdet_angle
     resi <- sum(apply(cartesian, 1, f) * jdet)
-    res <- res + abs(r_real[i] - r_estimate[i]) * resi
+    res <- res + abs(r_real[i_real] - r_estimate[i_estimate]) * resi
   }
   2 * pi^(d-1) / (m_angle * m_radius) * sum(res)
 }
