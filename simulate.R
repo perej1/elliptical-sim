@@ -1,10 +1,11 @@
 # Perform simulation for one scenario.
 source("functions.R")
+tic()
 
 option_list <- list(
   make_option("--type", type = "character", default = "tdistDeg4",
               help = "Distribution type"),
-  make_option("--d", type = "integer", default = 2,
+  make_option("--d", type = "integer", default = 3,
               help = "Dimensions"),
   make_option("--n", type = "integer", default = 1000,
               help = "Sample size"),
@@ -21,7 +22,7 @@ opt <- parse_args(opt_parser)
 # Global parameters
 s <- 100
 m_radius <- 100
-m_angle <- c(100, 100)
+m_angle <- c(100, 10000)
 sigma_list <- list(
   matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2),
   matrix(c(8, 7.5, -2.25, 7.5, 15, 0.45, -2.25, 0.45, 2),
@@ -59,68 +60,61 @@ gamma <- switch(opt$type,
 
 f <- function(x) dmvt(x, mu, sigma, df = 1 / gamma, log = FALSE)
 
-# Simulate s samples from distribution specified by type
-set.seed(opt$seed)
-coord <- c("x", "y", "z")[1:opt$d]
-samples <- purrr::map(1:s, \(i) rmvt(opt$n, sigma, 1 / gamma, mu))
+# Compute theoretical quantile region
+real <- tdist_extreme_region(sigma, gamma, p, m_angle[opt$d - 1])
 
-# Create tibble of samples
-samples <- do.call(cbind, samples)
+simulate <- function(i) {
+  # Simulate sample
+  data <- rmvt(opt$n, sigma, 1 / gamma, mu)
+  
+  # Estimation
+  est <- robustbase::covMcd(data, alpha = 0.5)
+  e_i <- elliptical_extreme_qregion(data, mu, est$cov, p, k, m_angle[opt$d - 1])
+  d_i <- depth_extreme_qregion(data, p, k, m_angle[opt$d - 1])
+  
+  # Compute error
+  e_err_i <- compute_error(real, e_i, m_radius, f) / p
+  d_err_i <- tryCatch(compute_error(real, d_i, m_radius, f),
+                           error = function(err) NA) / p
+  
+  list(samples = data,
+       elliptical_estimates = e_i,
+       depth_estimates = d_i,
+       elliptical_err = e_err_i,
+       depth_err = d_err_i)
+}
+
+# plan(multicore, workers = parallelly::availableCores())
+plan(sequential)
+set.seed(opt$seed)
+res <- furrr::future_map(1:s, ~simulate(.x),
+                         .options = furrr_options(seed = TRUE)) %>%
+  transpose()
+
+coord <- c("x", "y", "z")[1:opt$d]
+
+# Collect all samples in the same tibble
+samples <- do.call(cbind, res$samples)
 colnames(samples) <- paste0(coord, rep(1:s, each = opt$d))
 samples <- tibble::as_tibble(samples)
 
-# Compute estimates
-elliptical_estimates <- as.list(rep(NA, s))
-depth_estimates <- as.list(rep(NA, s))
-cli::cli_progress_bar("Compute estimates", total = s)
-for (i in 1:s) {
-  data <- samples %>%
-    select(num_range(coord, i)) %>%
-    as.matrix
-  est <- robustbase::covMcd(data, alpha = 0.5)
-
-  e_i <- elliptical_extreme_qregion(data, mu, est$cov, p, k, m_angle[opt$d - 1])
-  elliptical_estimates[[i]] <- e_i
-
-  d_i <- depth_extreme_qregion(data, p, k, m_angle[opt$d - 1])
-  depth_estimates[[i]] <- d_i
-  cli::cli_progress_update()
-}
-
-# Create tibble of estimates
+# Collect all the estimates in the same tibble
 column_names <- paste0(coord, rep(1:s, each = opt$d))
 
-elliptical_estimates <- do.call(cbind, elliptical_estimates)
+elliptical_estimates <- do.call(cbind, res$elliptical_estimates)
 colnames(elliptical_estimates) <- column_names
 elliptical_estimates <- tibble::as_tibble(elliptical_estimates)
 
-depth_estimates <- do.call(cbind, depth_estimates)
+depth_estimates <- do.call(cbind, res$depth_estimates)
 colnames(depth_estimates) <- column_names
 depth_estimates <- tibble::as_tibble(depth_estimates)
 
-# Calculate theoretical quantile region
-real <- tdist_extreme_region(sigma, gamma, p, m_angle[opt$d - 1])
+# Collect all errors in the same tibble
+errors <- tibble(elliptical = flatten_dbl(res$elliptical_err),
+                 depth = flatten_dbl(res$depth_err))
+
 colnames(real) <- coord
 real <- tibble::as_tibble(real)
-
-# Calculate errors
-elliptical_err <- rep(NA, s)
-depth_err <- rep(NA, s)
-cli::cli_progress_bar("Compute errors", total = s)
-for (i in 1:s) {
-  e_est <- elliptical_estimates %>%
-    select(num_range(coord, i)) %>%
-    as.matrix
-  d_est <- depth_estimates %>%
-    select(num_range(coord, i)) %>%
-    as.matrix
-  elliptical_err[i] <- compute_error(as.matrix(real), e_est, m_radius, f) / p
-  depth_err[i] <- tryCatch(compute_error(as.matrix(real), d_est, m_radius, f),
-                           error = function(err) NA) / p
-  cli::cli_progress_update()
-}
-
-errors <- tibble(elliptical = elliptical_err, depth = depth_err)
 
 # Write data
 filename <- paste0("type_", opt$type,
@@ -150,3 +144,4 @@ filename <- paste0("type_", opt$type,
                    "_n_", opt$n,
                    "_seed_", opt$seed, ".csv")
 readr::write_csv(samples, paste0("sim-data/samples/", filename))
+toc()
