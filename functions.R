@@ -100,12 +100,13 @@ tdist_extreme_region <- function(sigma, gamma, p, m_angle) {
 #' @param sigma_est Double matrix, estimate of the scatter.
 #' @param p Double, probability in quantile region.
 #' @param k Integer, threshold for the sample from the tail.
-#' @param m Integer, number of points to return.
+#' @param m_angle Integer, number of points to return.
 #'
 #' @return Double matrix, m points from the boundary of the quantile region.
-elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
+elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m_angle) {
   n <- nrow(data)
-  w <- get_ball_mesh(m)
+  d <- ncol(data)
+  w <- get_ball_mesh(d, m_angle)$cartesian
 
   # Center data
   data <- sweep(data, 2, mu_est, "-")
@@ -136,12 +137,13 @@ elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m) {
 #'   observation.
 #' @param p Double, probability in quantile region.
 #' @param k Integer, threshold for the sample from the tail.
-#' @param m Integer, number of points to return.
+#' @param m_angle Integer, number of points to return.
 #'
 #' @return Double matrix, m points from the boundary of the quantile region.
-depth_extreme_qregion <- function(data, p, k, m) {
+depth_extreme_qregion <- function(data, p, k, m_angle) {
   n <- nrow(data)
-  w <- get_ball_mesh(m)
+  d <- ncol(data)
+  w <- get_ball_mesh(d, m_angle)$cartesian
 
   radius <- apply(data, 1, norm, type = "2")
   radius_sort <- sort(radius, decreasing = FALSE)
