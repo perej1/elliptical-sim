@@ -39,13 +39,13 @@ spherical_to_cartesian <- function(radius, theta) {
 #'
 #' @return List of two double matrices, the first gives the ball in spherical
 #'   and the second in Cartesian coordinates. One row represents one point.
-get_ball_mesh <- function(d, m) {
-  mm <- ceiling(m^{1/(d - 1)})
+get_ball_mesh <- function(d, m_angle) {
+  m <- ceiling(m_angle^{1/(d - 1)})
   angle_list <- vector("list", d - 1)
-  angle_list[[d - 1]] <- seq(0, 2 * pi, length.out = mm)
+  angle_list[[d - 1]] <- seq(0, 2 * pi, length.out = m)
   if (d > 2) {
     for (i in 1:(d - 2)) {
-      angle_list[[i]] <- seq(0, pi, length.out = mm)
+      angle_list[[i]] <- seq(0, pi, length.out = m)
     }
   }
   spherical <- as.matrix(expand.grid(angle_list))
@@ -73,7 +73,7 @@ sqrtmat <- function(sigma) {
 }
 
 
-#' Compute theoretical quantile region for t-distribution
+#' Compute theoretical (1-p)-quantile region for t-distribution
 #'
 #' @param sigma Double matrix, Scatter matrix.
 #' @param gamma Double, extreme value index.
@@ -81,9 +81,9 @@ sqrtmat <- function(sigma) {
 #' @param m Integer, number of points to return.
 #'
 #' @return Double matrix, m points from the boundary of the quantile region.
-tdist_extreme_region <- function(sigma, gamma, p, m) {
+tdist_extreme_region <- function(sigma, gamma, p, m_angle) {
   d <- ncol(sigma)
-  w <- get_ball_mesh(d, m)
+  w <- get_ball_mesh(d, m_angle)$cartesian
   lambda <- sqrtmat(d * stats::qf(1 - p, d, 1 / gamma) * sigma)
   w %*% t(lambda)
 }
@@ -192,13 +192,23 @@ compute_error <- function(real, estimate, m_radius, f) {
   ball_real <- sweep(real, 1, r_real, "/")
   ball_estimate <- sweep(estimate, 1, r_estimate, "/")
   
+  ind_real <- rep(NA, m_angle)
+  ind_estimate <- rep(NA, m_angle)
+  for (i in 1:m_angle) {
+    i_real <- which.max(ball_real %*% ball$cartesian[i, ])
+    i_estimate <- which.max(ball_estimate %*% ball$cartesian[i, ])
+    
+    ind_real[i] <- i_real
+    ind_estimate[i] <- i_estimate
+  }
+  
+  r_real <- r_real[ind_real]
+  r_estimate <- r_estimate[ind_estimate]
+  
   for (i in 1:m_angle) {
     theta <- ball$spherical[i, ]
-    i_real <- which.max(ball$cartesian %*% ball_real[i, ])
-    i_estimate <- which.max(ball$cartesian %*% ball_estimate[i, ])
-    
-    r_seq <- seq(min(r_estimate[i_estimate], r_real[i_real]),
-                 max(r_estimate[i_estimate], r_real[i_real]),
+    r_seq <- seq(min(r_estimate[i], r_real[i]),
+                 max(r_estimate[i], r_real[i]),
                  length.out = m_radius)
     
     cartesian <- t(sapply(r_seq, spherical_to_cartesian, theta = theta))
