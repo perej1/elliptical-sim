@@ -1,11 +1,13 @@
 # Perform simulation for one scenario.
 source("functions.R")
-tic()
+tictoc::tic()
 
 option_list <- list(
   make_option("--type", type = "character", default = "tdistDeg4",
               help = "Distribution type"),
-  make_option("--d", type = "integer", default = 3,
+  make_option("--s", type = "integer", default = 1,
+              help = "Dimensions"),
+  make_option("--d", type = "integer", default = 2,
               help = "Dimensions"),
   make_option("--n", type = "integer", default = 1000,
               help = "Sample size"),
@@ -20,13 +22,13 @@ opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
 # Global parameters
-s <- 100
 m_radius <- 100
 m_angle <- c(100, 10000)
 sigma_list <- list(
   matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2),
   matrix(c(8, 7.5, -2.25, 7.5, 15, 0.45, -2.25, 0.45, 2),
          byrow = TRUE, ncol = 3))
+alpha <- c(-1, 1)
 
 # Scatter and location
 if (opt$type == "cauchyAff") {
@@ -55,17 +57,27 @@ gamma <- switch(opt$type,
                 cauchy = 1,
                 cauchyAff = 1,
                 tdistDeg4 = 1 / 4,
+                tdistSkew = 1 / 4,
                 rlang::abort("Invalid distribution type")
 )
 
-f <- function(x) dmvt(x, mu, sigma, df = 1 / gamma, log = FALSE)
+# Compute theoretical quantile region and set density function
+if (opt$type == "tdistSkew") {
+  f <- function (x) sn::dmst(x, mu, sigma, alpha, nu = 1 / gamma)
+  real <- NA
+} else {
+  f <- function(x) mvtnorm::dmvt(x, mu, sigma, df = 1 / gamma, log = FALSE)
+  real <- tdist_extreme_region(sigma, gamma, p, m_angle[opt$d - 1])
+}
 
-# Compute theoretical quantile region
-real <- tdist_extreme_region(sigma, gamma, p, m_angle[opt$d - 1])
 
 simulate <- function(i) {
   # Simulate sample
-  data <- rmvt(opt$n, sigma, 1 / gamma, mu)
+  if (opt$type == "tdistSkew") {
+    data <- sn::rmst(opt$n, mu, sigma, alpha, 1 / gamma)
+  } else {
+    data <- mvtnorm::rmvt(opt$n, sigma, 1 / gamma, mu)
+  }
   
   # Estimation
   est <- robustbase::covMcd(data, alpha = 0.5)
@@ -84,22 +96,20 @@ simulate <- function(i) {
        depth_err = d_err_i)
 }
 
-# plan(multicore, workers = parallelly::availableCores())
-plan(sequential)
+
 set.seed(opt$seed)
-res <- furrr::future_map(1:s, ~simulate(.x),
-                         .options = furrr_options(seed = TRUE)) %>%
-  transpose()
+res <- purrr::map(1:opt$s, ~simulate(.x)) %>%
+  purrr::transpose()
 
 coord <- c("x", "y", "z")[1:opt$d]
 
 # Collect all samples in the same tibble
 samples <- do.call(cbind, res$samples)
-colnames(samples) <- paste0(coord, rep(1:s, each = opt$d))
+colnames(samples) <- paste0(coord, rep(1:opt$s, each = opt$d))
 samples <- tibble::as_tibble(samples)
 
 # Collect all the estimates in the same tibble
-column_names <- paste0(coord, rep(1:s, each = opt$d))
+column_names <- paste0(coord, rep(1:opt$s, each = opt$d))
 
 elliptical_estimates <- do.call(cbind, res$elliptical_estimates)
 colnames(elliptical_estimates) <- column_names
@@ -110,14 +120,15 @@ colnames(depth_estimates) <- column_names
 depth_estimates <- tibble::as_tibble(depth_estimates)
 
 # Collect all errors in the same tibble
-errors <- tibble(elliptical = flatten_dbl(res$elliptical_err),
-                 depth = flatten_dbl(res$depth_err))
+errors <- tibble(elliptical = purrr::flatten_dbl(res$elliptical_err),
+                 depth = purrr::flatten_dbl(res$depth_err))
 
 colnames(real) <- coord
 real <- tibble::as_tibble(real)
 
 # Write data
 filename <- paste0("type_", opt$type,
+                   "_s_", opt$s,
                    "_d_", opt$d,
                    "_n_", opt$n,
                    "_p_", opt$p,
@@ -140,8 +151,9 @@ filename <- paste0("type_", opt$type,
 readr::write_csv(real, paste0("sim-data/real-regions/", filename))
 
 filename <- paste0("type_", opt$type,
+                   "_s_", opt$s,
                    "_d_", opt$d,
                    "_n_", opt$n,
                    "_seed_", opt$seed, ".csv")
 readr::write_csv(samples, paste0("sim-data/samples/", filename))
-toc()
+tictoc::toc()

@@ -1,11 +1,6 @@
 # All the needed packages and helper functions
-library(tictoc)
 library(optparse)
-library(mvtnorm)
 library(ggplot2)
-library(purrr)
-library(future)
-library(furrr)
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(testthat))
 
