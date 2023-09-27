@@ -8,7 +8,7 @@ suppressPackageStartupMessages(library(testthat))
 #' Convert a spherical coordinate to a Cartesian coordinate
 #'
 #' @param radius Double, radius of the point.
-#' @param theta Double vector, d - 1 angular coordinates. 
+#' @param theta Double vector, d - 1 angular coordinates.
 #'
 #' @return Double vector, d coordinates giving the location of the point in
 #'   space.
@@ -17,7 +17,7 @@ spherical_to_cartesian <- function(radius, theta) {
   cartesian <- rep(NA, d)
   cartesian[1] <- cos(theta[1])
   cartesian[d] <- prod(sin(theta))
-  
+
   if (d > 2) {
     for (i in 2:(d - 1)) {
       cartesian[i] <- prod(sin(theta[1:(i - 1)])) * cos(theta[i])
@@ -30,12 +30,12 @@ spherical_to_cartesian <- function(radius, theta) {
 #' Generate m uniformly distributed points on a (d - 1)-sphere
 #'
 #' @param d Integer, dimension of the ball, must be equal to or greater than 2.
-#' @param m Integer, number of points.
+#' @param m_angle Integer, number of points to return.
 #'
 #' @return List of two double matrices, the first gives the ball in spherical
 #'   and the second in Cartesian coordinates. One row represents one point.
 get_ball_mesh <- function(d, m_angle) {
-  m <- ceiling(m_angle^{1/(d - 1)})
+  m <- ceiling(m_angle^(1 / (d - 1)))
   angle_list <- vector("list", d - 1)
   angle_list[[d - 1]] <- seq(0, 2 * pi, length.out = m)
   if (d > 2) {
@@ -73,9 +73,10 @@ sqrtmat <- function(sigma) {
 #' @param sigma Double matrix, Scatter matrix.
 #' @param gamma Double, extreme value index.
 #' @param p Double, probability mass in quantile region.
-#' @param m Integer, number of points to return.
+#' @param m_angle Integer, number of points to return.
 #'
-#' @return Double matrix, m points from the boundary of the quantile region.
+#' @return Double matrix, m_angle points from the boundary of the quantile
+#'   region.
 tdist_extreme_region <- function(sigma, gamma, p, m_angle) {
   d <- ncol(sigma)
   w <- get_ball_mesh(d, m_angle)$cartesian
@@ -134,7 +135,8 @@ elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m_angle) {
 #' @param k Integer, threshold for the sample from the tail.
 #' @param m_angle Integer, number of points to return.
 #'
-#' @return Double matrix, m points from the boundary of the quantile region.
+#' @return Double matrix, m_angle points from the boundary of the quantile
+#'   region.
 depth_extreme_qregion <- function(data, p, k, m_angle) {
   n <- nrow(data)
   d <- ncol(data)
@@ -160,6 +162,55 @@ depth_extreme_qregion <- function(data, p, k, m_angle) {
 }
 
 
+#' Compute density contour at level beta for skewed t-distribution
+#'
+#' Computes points from the boundary of \eqn{\{x : f(x) \leq \beta\}}.
+#'
+#' @param mu Double vector, location.
+#' @param sigma Double matrix, scatter matrix.
+#' @param gamma Double, extreme value index.
+#' @param alpha Double vector, Skewness parameter for the skewed t-distribution.
+#' @param beta Double, level corresponding to density contour.
+#' @param m_angle Integer, number of points to return.
+#'
+#' @return Double matrix, m_angle points from the density contour.
+skew_t_contour_beta <- function(mu, sigma, gamma, alpha, beta, m_angle) {
+  theta <- seq(0, 2 * pi, length.out = m_angle)
+  r <- rep(NA, m_angle)
+  for (i in 1:m_angle) {
+    g <- function(rr) {
+      x <- rr * cos(theta[i])
+      y <- rr * sin(theta[i])
+      sn::dmst(c(x, y), mu, sigma, alpha, 1 / gamma, log = FALSE) - beta
+    }
+    r[i] <- pracma::fzero(g, c(0, 1000))$x
+  }
+
+  x <- r * cos(theta)
+  y <- r * sin(theta)
+  cbind(x, y)
+}
+
+
+#' Compute theoretical (1-p)-quantile region for skewed t-distribution
+#'
+#' @param mu Double vector, location.
+#' @param sigma Double matrix, scatter matrix.
+#' @param gamma Double, extreme value index.
+#' @param alpha Double vector, Skewness parameter for the skewed t-distribution.
+#' @param p Double, probability mass in quantile region.
+#' @param m_angle Integer, number of points to return.
+#'
+#' @return Double matrix, m points from the boundary of the quantile region.
+skew_t_contour_p <- function(mu, sigma, gamma, alpha, p, m_angle) {
+  n <- 2 * ceiling(1 / p)
+  f_sample <- apply(sn::rmst(n, mu, sigma, alpha, 1 / gamma), 1,
+                    function(x) sn::dmst(x, mu, sigma, alpha, 1 / gamma, log = FALSE))
+  beta <- quantile(f_sample, p)
+  skew_t_contour_beta(mu, sigma, gamma, alpha, beta, m_angle)
+}
+
+
 #' Calculate estimation error for elliptical extreme quantile region estimate
 #'
 #' Estimate \eqn{\mathbb{P}(X \in Q \triangle \hat Q)}, where \eqn{Q}
@@ -169,7 +220,6 @@ depth_extreme_qregion <- function(data, p, k, m_angle) {
 #'
 #' @param real Double matrix, describes theoretical quantile region.
 #' @param estimate Double matrix, describes estimated quantile region.
-#' @param m_angle Integer, discretization level for the angle.
 #' @param m_radius Integer, discretization level for the radius.
 #' @param f Density function.
 #'
@@ -179,16 +229,17 @@ compute_error <- function(real, estimate, m_radius, f) {
   d <- ncol(real)
   ball <- get_ball_mesh(d, m_angle)
   if (m_angle != nrow(estimate)) {
-    rlang::abort("`real`, `estimate`, and `ball` must have the same amount of points.")
+    rlang::abort(paste0("`real`, `estimate`, and `ball` must have the ",
+                        "same amount of points."))
   }
   res <- 0
-  
+
   r_real <- apply(real, 1, norm, type = "2")
   r_estimate <- apply(estimate, 1, norm, type = "2")
-  
+
   ball_real <- sweep(real, 1, r_real, "/")
   ball_estimate <- sweep(estimate, 1, r_estimate, "/")
-  
+
   for (i in 1:m_angle) {
     theta <- ball$spherical[i, ]
     i_real <- which.max(ball_real %*% ball$cartesian[i, ])
@@ -196,15 +247,14 @@ compute_error <- function(real, estimate, m_radius, f) {
     r_seq <- seq(min(r_estimate[i_estimate], r_real[i_real]),
                  max(r_estimate[i_estimate], r_real[i_real]),
                  length.out = m_radius)
-    
+
     cartesian <- t(sapply(r_seq, spherical_to_cartesian, theta = theta))
-    resi <- 0
     jdet_angle <- ifelse(d > 2, sin(theta[1:(d - 2)])^((d - 2):1), 1)
     jdet <- r_seq^(d - 1) * jdet_angle
     resi <- sum(apply(cartesian, 1, f) * jdet)
     res <- res + abs(r_real[i_real] - r_estimate[i_estimate]) * resi
   }
-  2 * pi^(d-1) / (m_angle * m_radius) * sum(res)
+  2 * pi^(d - 1) / (m_angle * m_radius) * sum(res)
 }
 
 

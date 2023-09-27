@@ -27,8 +27,9 @@ m_angle <- c(100, 10000)
 sigma_list <- list(
   matrix(c(11, 10.5, 10.5, 11.25), byrow = TRUE, ncol = 2),
   matrix(c(8, 7.5, -2.25, 7.5, 15, 0.45, -2.25, 0.45, 2),
-         byrow = TRUE, ncol = 3))
-alpha <- c(-1, 1)
+         byrow = TRUE, ncol = 3)
+)
+alpha <- c(1, -3)
 
 # Scatter and location
 if (opt$type == "cauchyAff") {
@@ -40,37 +41,37 @@ mu <- rep(0, opt$d)
 
 # Set values for p, k and extreme value index
 p <- switch(opt$p,
-            low = 2 / opt$n,
-            medium = 1 / opt$n,
-            high = 1 / (2 * opt$n),
-            rlang::abort("Invalid value of p")
+  low = 2 / opt$n,
+  medium = 1 / opt$n,
+  high = 1 / (2 * opt$n),
+  rlang::abort("Invalid value of p")
 )
 
 k <- switch(opt$k,
-            large = 0.2 * opt$n,
-            medium = 0.1 * opt$n,
-            small = 0.05 * opt$n,
-            rlang::abort("Invalid value of k")
+  large = 0.2 * opt$n,
+  medium = 0.1 * opt$n,
+  small = 0.05 * opt$n,
+  rlang::abort("Invalid value of k")
 )
 
 gamma <- switch(opt$type,
-                cauchy = 1,
-                cauchyAff = 1,
-                tdistDeg4 = 1 / 4,
-                tdistSkew = 1 / 4,
-                rlang::abort("Invalid distribution type")
+  cauchy = 1,
+  cauchyAff = 1,
+  tdistDeg4 = 1 / 4,
+  tdistSkew = 1 / 4,
+  rlang::abort("Invalid distribution type")
 )
 
 # Compute theoretical quantile region and set density function
 if (opt$type == "tdistSkew") {
-  f <- function (x) sn::dmst(x, mu, sigma, alpha, nu = 1 / gamma)
+  f <- function(x) sn::dmst(x, mu, sigma, alpha, nu = 1 / gamma)
   real <- NA
 } else {
   f <- function(x) mvtnorm::dmvt(x, mu, sigma, df = 1 / gamma, log = FALSE)
   real <- tdist_extreme_region(sigma, gamma, p, m_angle[opt$d - 1])
 }
 
-
+# One round of simulations
 simulate <- function(i) {
   # Simulate sample
   if (opt$type == "tdistSkew") {
@@ -78,22 +79,23 @@ simulate <- function(i) {
   } else {
     data <- mvtnorm::rmvt(opt$n, sigma, 1 / gamma, mu)
   }
-  
+
   # Estimation
   est <- robustbase::covMcd(data, alpha = 0.5)
   e_i <- elliptical_extreme_qregion(data, mu, est$cov, p, k, m_angle[opt$d - 1])
   d_i <- depth_extreme_qregion(data, p, k, m_angle[opt$d - 1])
-  
+
   # Compute error
   e_err_i <- compute_error(real, e_i, m_radius, f) / p
   d_err_i <- tryCatch(compute_error(real, d_i, m_radius, f),
-                           error = function(err) NA) / p
-  
+                      error = function(err) NA) / p
+
   list(samples = data,
-       elliptical_estimates = e_i,
-       depth_estimates = d_i,
-       elliptical_err = e_err_i,
-       depth_err = d_err_i)
+    elliptical_estimates = e_i,
+    depth_estimates = d_i,
+    elliptical_err = e_err_i,
+    depth_err = d_err_i
+  )
 }
 
 
@@ -123,6 +125,7 @@ depth_estimates <- tibble::as_tibble(depth_estimates)
 errors <- tibble(elliptical = purrr::flatten_dbl(res$elliptical_err),
                  depth = purrr::flatten_dbl(res$depth_err))
 
+# Theoretical quantile region to tibble
 colnames(real) <- coord
 real <- tibble::as_tibble(real)
 
