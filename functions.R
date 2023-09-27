@@ -249,7 +249,7 @@ compute_error <- function(real, estimate, m_radius, f) {
                  length.out = m_radius)
 
     cartesian <- t(sapply(r_seq, spherical_to_cartesian, theta = theta))
-    jdet_angle <- ifelse(d > 2, sin(theta[1:(d - 2)])^((d - 2):1), 1)
+    jdet_angle <- ifelse(d > 2, prod(sin(theta[1:(d - 2)])^((d - 2):1)), 1)
     jdet <- r_seq^(d - 1) * jdet_angle
     resi <- sum(apply(cartesian, 1, f) * jdet)
     res <- res + abs(r_real[i_real] - r_estimate[i_estimate]) * resi

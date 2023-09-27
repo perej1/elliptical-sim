@@ -6,7 +6,7 @@ option_list <- list(
   make_option("--type", type = "character", default = "tdistDeg4",
               help = "Distribution type"),
   make_option("--s", type = "integer", default = 1,
-              help = "Dimensions"),
+              help = "Number of repretitions for a scenario"),
   make_option("--d", type = "integer", default = 2,
               help = "Dimensions"),
   make_option("--n", type = "integer", default = 1000,
