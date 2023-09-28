@@ -10,8 +10,9 @@ option_list <- list(
 opt_parser <- OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
-type <- c("cauchy", "cauchyAff", "tdistDeg4")
+type <- c("cauchy", "cauchyAff", "tdistDeg4", "tdistSkew")
 n <- c(1000, 5000)
+d <- 2:3
 p <- c("low", "medium", "high")
 k <- c("small", "medium", "large")
 seed <- 278

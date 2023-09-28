@@ -40,7 +40,7 @@ arg_skew <- expand.grid(
 )
 
 arg <- rbind(arg_2d, arg_skew, arg_3d)
-arg <- sprintf(paste0("Rscript simulate.R --type %s --s %d --d %d --n %d ",
+arg <- sprintf(paste0("simulate.R --type %s --s %d --d %d --n %d ",
                       "--p %s --k %s --seed %d"),
   arg$type,
   arg$s,

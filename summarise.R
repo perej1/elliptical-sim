@@ -4,6 +4,10 @@ source("functions.R")
 option_list <- list(
   make_option("--type", type = "character", default = "tdistDeg4",
               help = "Distribution type"),
+  make_option("--s", type = "integer", default = 1,
+              help = "Number of repretitions for a scenario"),
+  make_option("--d", type = "integer", default = 2,
+              help = "Dimensions"),
   make_option("--n", type = "integer", default = 1000,
               help = "Sample size"),
   make_option("--p", type = "character", default = "high",
@@ -18,11 +22,12 @@ opt <- parse_args(opt_parser)
 
 # Read data
 filename <- paste0("type_", opt$type,
+                   "_s_", opt$s,
+                   "_d_", opt$d,
                    "_n_", opt$n,
-                   "_seed_", opt$seed,
                    "_p_", opt$p,
-                   "_k_", opt$k, ".csv"
-                   )
+                   "_k_", opt$k,
+                   "_seed_", opt$seed, ".csv")
 elliptical_estimates <- readr::read_csv(paste0("sim-data/elliptical-estimates/",
                                                filename),
                                         show_col_types = FALSE)
@@ -33,7 +38,10 @@ errors <- readr::read_csv(paste0("sim-data/errors/",
                                  filename),
                           show_col_types = FALSE)
 
-filename <- paste0("type_", opt$type, "_n_", opt$n, "_p_", opt$p, ".csv")
+filename <- paste0("type_", opt$type,
+                   "_d_", opt$d,
+                   "_n_", opt$n,
+                   "_p_", opt$p, ".csv")
 real <- readr::read_csv(paste0("sim-data/real-regions/", filename),
                         show_col_types = FALSE)
 
@@ -70,33 +78,41 @@ depth_median <- depth_estimates %>%
   ) %>%
   rename(x = 1, y = 2)
 
-# Combine data for plotting
-data_min <- bind_rows(real, ellipse_min, depth_min) %>%
-  mutate(group = rep(c("real", "ellipse", "depth"), each = 1000))
+if (opt$d == 2) {
+  # Combine data for plotting
+  data_min <- bind_rows(real, ellipse_min, depth_min) %>%
+    mutate(group = rep(c("real", "ellipse", "depth"), each = 1000))
+  
+  data_max <- bind_rows(real, ellipse_max, depth_max) %>%
+    mutate(group = rep(c("real", "ellipse", "depth"), each = 1000))
+  
+  data_median <- bind_rows(real, ellipse_median, depth_median) %>%
+    mutate(group = rep(c("real", "ellipse", "depth"), each = 1000))
+  
+  # Plotting
+  g_min <- plot_data(data_min)
+  g_max <- plot_data(data_max)
+  g_median <- plot_data(data_median)
+}
 
-data_max <- bind_rows(real, ellipse_max, depth_max) %>%
-  mutate(group = rep(c("real", "ellipse", "depth"), each = 1000))
-
-data_median <- bind_rows(real, ellipse_median, depth_median) %>%
-  mutate(group = rep(c("real", "ellipse", "depth"), each = 1000))
-
-# Plotting
-g_min <- plot_data(data_min)
-g_max <- plot_data(data_max)
-g_median <- plot_data(data_median)
 
 # Save results
 filename <- paste0("type_", opt$type,
+                   "_s_", opt$s,
+                   "_d_", opt$d,
                    "_n_", opt$n,
-                   "_seed_", opt$seed,
                    "_p_", opt$p,
-                   "_k_", opt$k)
+                   "_k_", opt$k,
+                   "_seed_", opt$seed, ".csv")
 readr::write_csv(stats_df,
                  paste0("summary-data/stats/", filename, ".csv")
 )
-ggsave(paste0("summary-data/figures-min/", filename, ".jpg"),
-       plot = g_min, width = 7, height = 7, dpi = 1000)
-ggsave(paste0("summary-data/figures-max/", filename, ".jpg"),
-       plot = g_max, width = 7, height = 7, dpi = 1000)
-ggsave(paste0("summary-data/figures-median/", filename, ".jpg"),
-       plot = g_median, width = 7, height = 7, dpi = 1000)
+
+if (d == 2) {
+  ggsave(paste0("summary-data/figures-min/", filename, ".jpg"),
+         plot = g_min, width = 7, height = 7, dpi = 1000)
+  ggsave(paste0("summary-data/figures-max/", filename, ".jpg"),
+         plot = g_max, width = 7, height = 7, dpi = 1000)
+  ggsave(paste0("summary-data/figures-median/", filename, ".jpg"),
+         plot = g_median, width = 7, height = 7, dpi = 1000)
+}
