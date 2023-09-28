@@ -4,7 +4,6 @@ library(ggplot2)
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(testthat))
 
-
 #' Convert a spherical coordinate to a Cartesian coordinate
 #'
 #' @param radius Double, radius of the point.
