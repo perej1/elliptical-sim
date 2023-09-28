@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=01:00:00
-#SBATCH --mem=6G
+#SBATCH --mem=2G
 #SBATCH --output=output.log
 #SBATCH --array=1-2
 
