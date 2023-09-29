@@ -39,7 +39,7 @@ arg_skew <- expand.grid(
 )
 
 arg <- rbind(arg_3d, arg_2d, arg_skew)
-arg <- sprintf(paste0("simulate.R --type %s --s %d --d %d --n %d ",
+arg_vector <- sprintf(paste0("simulate.R --type %s --s %d --d %d --n %d ",
                       "--p %s --k %s --seed %d"),
   arg$type,
   arg$s,
@@ -50,4 +50,5 @@ arg <- sprintf(paste0("simulate.R --type %s --s %d --d %d --n %d ",
   arg$seed
 )
 
-readr::write_lines(arg, "sim-args.txt")
+readr::write_lines(arg_vector, "sim-args.txt")
+readr::write_csv(arg, "sim-args.csv")
