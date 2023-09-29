@@ -2,7 +2,7 @@
 source("functions.R")
 
 option_list <- list(
-  make_option("--type", type = "character", default = "tdistDeg4",
+  make_option("--type", type = "character", default = "tdistSkew",
               help = "Distribution type"),
   make_option("--s", type = "integer", default = 1,
               help = "Number of repretitions for a scenario"),
@@ -64,7 +64,7 @@ gamma <- switch(opt$type,
 # Compute theoretical quantile region and set density function
 if (opt$type == "tdistSkew") {
   f <- function(x) sn::dmst(x, mu, sigma, alpha, nu = 1 / gamma)
-  real <- NA
+  real <- skew_t_contour_p(mu, sigma, gamma, alpha, p, m_angle[opt$d - 1])
 } else {
   f <- function(x) mvtnorm::dmvt(x, mu, sigma, df = 1 / gamma, log = FALSE)
   real <- tdist_extreme_region(sigma, gamma, p, m_angle[opt$d - 1])
