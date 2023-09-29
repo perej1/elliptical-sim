@@ -1,35 +1,41 @@
 # elliptical-sim
 
-Simulation study for an article about multivariate extreme quantile
-region estimation. Two things are done in the simulations:
+Simulation study for an article about multivariate extreme quantile region
+estimation. Current simulation settings serve two different purposes:
 
 1. Performance of an elliptical extreme quantile region estimator is compared to
 a competing extreme quantile region estimator based on halfspace depth [1].
 Relative errors for both estimators are computed for each simulation scenario,
-and are then saved in the directory `sim-data/errors/`. Additionally, directory
-`sim-data/` includes the following data for reproducibility:
+and the errors are saved in the directory `sim-data/errors/`. Additionally,
+directory `sim-data/` includes the following data for reproducibility:
 
    - true quantile regions,
    - estimates (elliptical and depth) and
    - samples, from which the estimates are calculated.
 
-   On the other hand, directory `summmary-data/` includes some statistics such
-as minimum, median and maximum relative errors for each scenario. Also, figures
-corresponding to minimum, median and maximum relative errors are included.
+   On the other hand, directory `summmary-data/` includes some summary
+statistics for relative errors of each scenario. Also, illustrative figures are
+included.
 
-2. An example with clover shaped quantile regions is constructed. Here we use
-elliptical extreme quantile region estimator for estimation, and thus, estimated
-quantile regions have an elliptical shape, even though true quantile regions are
-not elliptically shaped.
+2. An example with skewed t-distribution is constructed. Here we use elliptical
+extreme quantile region estimator for estimation, and thus, estimated quantile
+regions have an elliptical shape, even though true quantile regions are not
+elliptically shaped. For the skewed t-distribution we repeat each scenario once.
+Thus, summary statistics are not relevant here, but illustrative figures are in
+the directory `summary-data/figures-skew`.
 
 ## Requirements
 
-1. Clone or unzip the repository.
+1. Access to Aalto University Triton computing cluster is required for running
+   the simulations. See [this link](https://scicomp.aalto.fi/triton/) for
+   details about Triton.
+
+2. Clone or unzip the repository.
     ```
     git clone https://github.com/perej1/elliptical-sim.git
     ```
 
-2. Install required packages by running the following R command in the project's
+3. Install required packages by running the following R command in the project's
    root folder (R package `renv` has to be installed).
     ```
     renv::restore()
@@ -37,28 +43,31 @@ not elliptically shaped.
 
 ## Running the simulation
 
-In total there are six R scripts.
+In total there are six scripts.
 
 - `simulate.R` - Performs simulations for selected parameters.
-- `simulate-batch.R` - Performs simulations for sets of different parameters.
-  Additionally, this script is responsible for argument parsing.
-- `summarise.R` - Computes minimum, median and maximum relative errors.
-  Additionally, the script outputs figures corresponding to minimum, median and
-  maximum relative errors.
-- `functions.R` - Includes all the required packages and functions.
+- `sim-batch.slurm` - Performs simulations for sets of different parameters.
+- `summarise.R` - Computes summary statistics and produces figures.
+- `functions.R` - Includes functions needed for simulations.
+- `gen-arg.R` - Generates arguments for simulation settings.
 - `test-compute_error.R` - Unit tests for the function `compute_error.R`.
 
-Run the script `simulate-batch.R` with desired arguments. For example, below we
-run simulations as a whole.
+With the following command one can run all simulation settings specified by the
+`sim-args.txt`.
 
 ```
-Rscript simulate-batch.R
+sbatch sim-batch.slurm
 ```
 
-For example, if you want to exclude clover example, just run the following.
+Instead one can run just one specified scenario (for this Triton is not needed).
 ```
-Rscript simulate-batch.R --simulate TRUE --summarise TRUE --clover FALSE
+Rscript simulate.R --type tdistDeg4 --s 100 --d 3 --n 1000 --p high --k medium --seed 278
 ```
+
+## Acknowledgements
+
+We acknowledge the computational resources provided by the Aalto Science-IT
+project.
 
 ## References
 
