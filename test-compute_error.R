@@ -1,4 +1,5 @@
 # Unit tests for the function compute_error
+library(testthat)
 source("functions.R")
 
 

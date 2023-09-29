@@ -2,7 +2,6 @@
 library(optparse)
 library(ggplot2)
 suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(testthat))
 
 #' Convert a spherical coordinate to a Cartesian coordinate
 #'

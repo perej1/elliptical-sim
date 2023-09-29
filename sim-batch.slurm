@@ -1,7 +1,8 @@
 #!/bin/bash
-#SBATCH --time=01:00:00
-#SBATCH --mem=2G
-#SBATCH --output=output.log
+#SBATCH --time=02:00:00
+#SBATCH --cpus-per-task=12
+#SBATCH --mem-per-cpu=4G
+#SBATCH --output=output/out_%A_%a.out
 #SBATCH --array=1-2
 
 export OMP_NUM_THREADS=1

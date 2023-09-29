@@ -9,7 +9,7 @@ option_list <- list(
               help = "Number of repretitions for a scenario"),
   make_option("--d", type = "integer", default = 2,
               help = "Dimensions"),
-  make_option("--n", type = "integer", default = 1000,
+  make_option("--n", type = "integer", default = 5000,
               help = "Sample size"),
   make_option("--p", type = "character", default = "high",
               help = "Probability mass outside quantile region"),
@@ -98,9 +98,11 @@ simulate <- function(i) {
   )
 }
 
-
+RNGkind("L'Ecuyer-CMRG")
 set.seed(opt$seed)
-res <- purrr::map(1:opt$s, ~simulate(.x)) %>%
+# Sys.getenv("SLURM_CPUS_PER_TASK")
+res <- parallel::mclapply(1:opt$s, simulate, mc.set.seed = TRUE,
+                          mc.cores = 1) %>%
   purrr::transpose()
 
 coord <- c("x", "y", "z")[1:opt$d]

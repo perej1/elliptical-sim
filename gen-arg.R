@@ -1,8 +1,7 @@
 # Generate arguments for simulation scenarios
-suppressPackageStartupMessages(library(dplyr))
 
 type <- c("cauchy", "cauchyAff", "tdistDeg4", "tdistSkew")
-s <- c(1, 10, 100)
+s <- c(1, 100)
 d <- 2:3
 n <- c(1000, 5000)
 p <- c("low", "medium", "high")
@@ -11,7 +10,7 @@ seed <- 278
 
 arg_2d <- expand.grid(
   type = type[-4],
-  s = s[3],
+  s = s[2],
   d = d[1],
   n = n,
   p = p,
