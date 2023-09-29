@@ -36,7 +36,7 @@ test_that("Error computation works for spherical t-distributions, when
   for (d in 2:3) {
     p <- c(1 / 1000, 1 / 100)
     err <- abs(p[1] - p[2])
-    
+
     for (gamma_i in gamma) {
       f <- function(x) mvtnorm::dmvt(x, mu[[d - 1]], diag(d), 1 / gamma_i, log = FALSE)
       real <- tdist_extreme_region(diag(d), gamma_i, p[1], m_angle[d - 1])
@@ -58,7 +58,7 @@ test_that("Error computation works for elliptical t-distributions, when
   for (d in 2:3) {
     p <- c(1 / 1000, 1 / 100)
     err <- abs(p[1] - p[2])
-    
+
     for (gamma_i in gamma) {
       f <- function(x) mvtnorm::dmvt(x, mu[[d - 1]], sigma[[d - 1]], 1 / gamma_i, log = FALSE)
       real <- tdist_extreme_region(sigma[[d - 1]], gamma_i, p[1], m_angle[d - 1])
@@ -80,7 +80,7 @@ test_that("Error computation works for spherical t-distributions, when
   for (d in 2:3) {
     p <- c(1 / 1000, 1 / 1500)
     err <- abs(p[1] - p[2])
-    
+
     for (gamma_i in gamma) {
       f <- function(x) mvtnorm::dmvt(x, mu[[d - 1]], diag(d), 1 / gamma_i, log = FALSE)
       real <- tdist_extreme_region(diag(d), gamma_i, p[1], m_angle[d - 1])
@@ -102,7 +102,7 @@ test_that("Error computation works for elliptical t-distributions, when
   for (d in 2:3) {
     p <- c(1 / 1000, 1 / 1500)
     err <- abs(p[1] - p[2])
-    
+
     for (gamma_i in gamma) {
       f <- function(x) mvtnorm::dmvt(x, mu[[d - 1]], sigma[[d - 1]], 1 / gamma_i, log = FALSE)
       real <- tdist_extreme_region(sigma[[d - 1]], gamma_i, p[1], m_angle[d - 1])

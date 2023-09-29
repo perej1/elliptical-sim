@@ -1,6 +1,5 @@
 # Perform simulation for one scenario.
 source("functions.R")
-tictoc::tic()
 
 option_list <- list(
   make_option("--type", type = "character", default = "tdistDeg4",
@@ -100,9 +99,8 @@ simulate <- function(i) {
 
 RNGkind("L'Ecuyer-CMRG")
 set.seed(opt$seed)
-# Sys.getenv("SLURM_CPUS_PER_TASK")
 res <- parallel::mclapply(1:opt$s, simulate, mc.set.seed = TRUE,
-                          mc.cores = 1) %>%
+                          mc.cores = Sys.getenv("SLURM_CPUS_PER_TASK")) %>%
   purrr::transpose()
 
 coord <- c("x", "y", "z")[1:opt$d]
@@ -161,4 +159,3 @@ filename <- paste0("type_", opt$type,
                    "_n_", opt$n,
                    "_seed_", opt$seed, ".csv")
 readr::write_csv(samples, paste0("sim-data/samples/", filename))
-tictoc::toc()
