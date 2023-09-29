@@ -128,36 +128,34 @@ errors <- tibble(elliptical = purrr::flatten_dbl(res$elliptical_err),
 # Theoretical quantile region to tibble
 colnames(real) <- coord
 real <- tibble::as_tibble(real)
-print(getwd())
-print(real)
 
 # Write data
-# filename <- paste0("type_", opt$type,
-#                    "_s_", opt$s,
-#                    "_d_", opt$d,
-#                    "_n_", opt$n,
-#                    "_p_", opt$p,
-#                    "_k_", opt$k,
-#                    "_seed_", opt$seed, ".csv")
-# 
-# readr::write_csv(elliptical_estimates,
-#                  paste0("sim-data/elliptical-estimates/", filename))
-# 
-# readr::write_csv(depth_estimates,
-#                  paste0("sim-data/depth-estimates/", filename))
-# 
-# readr::write_csv(errors,
-#                  paste0("sim-data/errors/", filename))
-# 
-# filename <- paste0("type_", opt$type,
-#                    "_d_", opt$d,
-#                    "_n_", opt$n,
-#                    "_p_", opt$p, ".csv")
-# readr::write_csv(real, paste0("sim-data/real-regions/", filename))
-# 
-# filename <- paste0("type_", opt$type,
-#                    "_s_", opt$s,
-#                    "_d_", opt$d,
-#                    "_n_", opt$n,
-#                    "_seed_", opt$seed, ".csv")
-# readr::write_csv(samples, paste0("sim-data/samples/", filename))
+filename <- paste0("type_", opt$type,
+                   "_s_", opt$s,
+                   "_d_", opt$d,
+                   "_n_", opt$n,
+                   "_p_", opt$p,
+                   "_k_", opt$k,
+                   "_seed_", opt$seed, ".csv")
+
+readr::write_csv(elliptical_estimates,
+                 paste0("sim-data/elliptical-estimates/", filename))
+
+readr::write_csv(depth_estimates,
+                 paste0("sim-data/depth-estimates/", filename))
+
+readr::write_csv(errors,
+                 paste0("sim-data/errors/", filename))
+
+filename <- paste0("type_", opt$type,
+                   "_d_", opt$d,
+                   "_n_", opt$n,
+                   "_p_", opt$p, ".csv")
+readr::write_csv(real, paste0("sim-data/real-regions/", filename))
+
+filename <- paste0("type_", opt$type,
+                   "_s_", opt$s,
+                   "_d_", opt$d,
+                   "_n_", opt$n,
+                   "_seed_", opt$seed, ".csv")
+readr::write_csv(samples, paste0("sim-data/samples/", filename))
