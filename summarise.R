@@ -76,16 +76,6 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
       ) %>%
       rename(x = 1, y = 2)
     
-    # Combine data for plotting
-    # data_min <- bind_rows(real, ellipse_min, depth_min) %>%
-    #   mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
-    # 
-    # data_max <- bind_rows(real, ellipse_max, depth_max) %>%
-    #   mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
-    # 
-    # data_median <- bind_rows(real, ellipse_median, depth_median) %>%
-    #   mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
-    
     # Plotting
     g_min <- plot_real_estimate(real, ellipse_min, depth_min)
     g_max <- plot_real_estimate(real, ellipse_max, depth_max)
@@ -98,4 +88,61 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
     ggsave(paste0("summary-data/figures-median/", filename, ".jpg"),
            plot = g_median, width = 7, height = 7, dpi = 1000)
   }
+}
+
+# Plot scenarios for skewed t distribution.
+# Each plot includes cases for all p.
+args_skew_no_p <- args_skew %>%
+  select(-p) %>%
+  distinct()
+
+for (i in 1:nrow(args_skew_no_p)) {
+  arg <- args_skew_no_p[i, ]
+  p <- c("low", "high")
+  estimate_list <- vector("list", length(p))
+  real_list <- vector("list", length(p))
+  
+  # Read sample
+  filename_sample <- paste0("type_", arg$type,
+                            "_s_", arg$s,
+                            "_d_", arg$d,
+                            "_n_", arg$n,
+                            "_seed_", arg$seed, ".csv")
+  sample <- readr::read_csv(paste0("sim-data/samples/", filename_sample),
+                            show_col_types = FALSE) %>%
+    rename(x = x1, y = y1)
+  
+  for (j in seq_along(p)) {
+    # Read theoretical quantile and elliptical estimate
+    filename_real <- paste0("type_", arg$type,
+                            "_d_", arg$d,
+                            "_n_", arg$n,
+                            "_p_", p[j], ".csv")
+    real <- readr::read_csv(paste0("sim-data/real-regions/", filename_real),
+                            show_col_types = FALSE)
+    real_list[[j]] <- real
+    
+    filename_estimate <- paste0("type_", arg$type,
+                                "_s_", arg$s,
+                                "_d_", arg$d,
+                                "_n_", arg$n,
+                                "_p_", p[j],
+                                "_k_", arg$k,
+                                "_seed_", arg$seed, ".csv")
+    estimate <- readr::read_csv(paste0("sim-data/elliptical-estimates/",
+                                       filename_estimate),
+                                show_col_types = FALSE) %>%
+      rename(x = x1, y = y1)
+    estimate_list[[j]] <- estimate
+  }
+  
+  g <- plot_sample_and_estimates(sample, real_list, estimate_list, p)
+  filename <- paste0("type_", arg$type,
+                     "_s_", arg$s,
+                     "_d_", arg$d,
+                     "_n_", arg$n,
+                     "_k_", arg$k,
+                     "_seed_", arg$seed)
+  ggsave(paste0("summary-data/figures-skew/", filename, ".jpg"),
+         plot = g, width = 7, height = 7, dpi = 1000)
 }

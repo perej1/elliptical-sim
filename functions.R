@@ -283,3 +283,33 @@ plot_real_estimate <- function(real, ellipse, depth) {
                           values = c("real" = "solid", "ellipse" = "dashed",
                                      "depth" = "dotted"))
 }
+
+
+plot_sample_and_estimates <- function(sample, real_list, estimate_list, p) {
+  m_angle <- nrow(real_list[[1]])
+  estimates <- bind_rows(estimate_list) %>%
+    mutate(group = rep(paste0("estimate_", p), each = m_angle))
+  
+  reals <- bind_rows(real_list) %>%
+    mutate(group = rep(paste0("real_", p), each = m_angle))
+  
+  linetypes <- rep(c("solid", "dashed"), each = length(p))
+  names(linetypes) <- c(paste0("real_", p), paste0("estimate_", p))
+  
+  g <- ggplot(as_tibble(sample), aes(x = x, y = y)) +
+    geom_point() +
+    geom_path(data = bind_rows(estimates, reals),
+              aes(x = x, y = y, group = group, linetype = group),
+              show.legend = FALSE) +
+    coord_fixed() +
+    theme(axis.title = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          legend.background = element_blank(),
+          legend.key = element_blank(),
+          legend.key.size = unit(1, "cm"),
+          legend.text = element_text(size = 15),
+          axis.text = element_text(size = 15)) +
+    scale_linetype_manual(name = NULL,
+                          values = linetypes)
+}
