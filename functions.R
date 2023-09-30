@@ -313,3 +313,13 @@ plot_sample_and_estimates <- function(sample, real_list, estimate_list, p) {
     scale_linetype_manual(name = NULL,
                           values = linetypes)
 }
+
+
+boxplot_errors <- function(elliptical, depth, s) {
+  elliptical <- rename(elliptical, err = 1)
+  depth <- rename(depth, err = 1)
+  data <- rbind(elliptical, depth) %>%
+    mutate(group = rep(c("Elliptical", "Depth"), each = s))
+  g <- ggplot(data, aes(x = group, y = err)) +
+    geom_boxplot()
+}

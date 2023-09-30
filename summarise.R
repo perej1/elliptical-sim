@@ -9,6 +9,9 @@ args_2d <- args %>%
 args_3d <- args %>%
   filter(d == 3)
 
+medians_3d <- args_3d %>%
+  mutate(elliptical = NA, depth = NA)
+
 args_skew <- args %>%
   filter(type == "tdistSkew")
 
@@ -16,7 +19,7 @@ args_skew <- args %>%
 # Produce corresponding figures for the 2d case.
 for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
   # Read error data
-  arg <- rbind(args_2d, args_3d)[i, ]
+  arg <- rbind(args_3d, args_2d)[i, ]
   filename <- paste0("type_", arg$type,
                      "_s_", arg$s,
                      "_d_", arg$d,
@@ -34,6 +37,10 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
   tibble::as_tibble(rbind(mins, maxs, medians)) %>%
     mutate(type = c("min", "max", "median")) %>%
     readr::write_csv(paste0("summary-data/stats/", filename, ".csv"))
+  
+  if (arg$d == 3) {
+    medians_3d[i, c("elliptical", "depth")] <- list(medians[1], medians[2])
+  }
   
   if (arg$d == 2) {
     # Read data corresponding estimates and theoretical quantile regions
@@ -95,10 +102,10 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
 args_skew_no_p <- args_skew %>%
   select(-p) %>%
   distinct()
+p <- c("low", "high")
 
 for (i in 1:nrow(args_skew_no_p)) {
   arg <- args_skew_no_p[i, ]
-  p <- c("low", "high")
   estimate_list <- vector("list", length(p))
   real_list <- vector("list", length(p))
   
@@ -145,4 +152,60 @@ for (i in 1:nrow(args_skew_no_p)) {
                      "_seed_", arg$seed)
   ggsave(paste0("summary-data/figures-skew/", filename, ".jpg"),
          plot = g, width = 7, height = 7, dpi = 1000)
+}
+
+
+# Plot scenarios for 3d cases.
+# Each plot includes boxplots for errors of depth/elliptical estimators for
+# optimal k with certain combination of n and p.
+n <- c(1000, 5000)
+p <- c("low", "medium", "high")
+args_3d_no_pn <- args_3d %>%
+  select(-p, -n) %>%
+  distinct()
+
+for (i in 1:nrow(args_3d_no_pn)) {
+  error_list <- vector("list", length(p) * length(n))
+  arg <- args_3d_no_pn[i, ]
+  for (j1 in seq_along(p)) {
+    for (j2 in seq_along(n)) {
+      medians <- filter(medians_3d, type == arg$type & p == p[j1] & n == n[j2])
+      
+      k_elliptical <- medians$k[which.min(medians$elliptical)]
+      filename_elliptical <- paste0("type_", arg$type,
+                                    "_s_", arg$s,
+                                    "_d_", arg$d,
+                                    "_n_", n[j2],
+                                    "_p_", p[j1],
+                                    "_k_", k_elliptical,
+                                    "_seed_", arg$seed, ".csv")
+      elliptical <- readr::read_csv(paste0("sim-data/errors/",
+                                           filename_elliptical),
+                                    show_col_types = FALSE) %>%
+        select(elliptical)
+      
+      k_depth <- medians$k[which.min(medians$depth)]
+      filename_depth <- paste0("type_", arg$type,
+                                    "_s_", arg$s,
+                                    "_d_", arg$d,
+                                    "_n_", n[j2],
+                                    "_p_", p[j1],
+                                    "_k_", k_depth,
+                                    "_seed_", arg$seed, ".csv")
+      depth <- readr::read_csv(paste0("sim-data/errors/", filename_elliptical),
+                               show_col_types = FALSE) %>%
+        select(depth)
+      
+      g <- boxplot_errors(elliptical, depth, arg$s)
+      
+      filename <- paste0("type_", arg$type,
+                         "_s_", arg$s,
+                         "_d_", arg$d,
+                         "_n_", n[j2],
+                         "_p_", p[j1],
+                         "_seed_", arg$seed)
+      ggsave(paste0("summary-data/figures-boxplot/", filename, ".jpg"),
+             plot = g, width = 7, height = 7, dpi = 1000)
+    }
+  }
 }
