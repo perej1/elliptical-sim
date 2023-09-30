@@ -77,19 +77,19 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
       rename(x = 1, y = 2)
     
     # Combine data for plotting
-    data_min <- bind_rows(real, ellipse_min, depth_min) %>%
-      mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
-    
-    data_max <- bind_rows(real, ellipse_max, depth_max) %>%
-      mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
-    
-    data_median <- bind_rows(real, ellipse_median, depth_median) %>%
-      mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
+    # data_min <- bind_rows(real, ellipse_min, depth_min) %>%
+    #   mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
+    # 
+    # data_max <- bind_rows(real, ellipse_max, depth_max) %>%
+    #   mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
+    # 
+    # data_median <- bind_rows(real, ellipse_median, depth_median) %>%
+    #   mutate(group = rep(c("real", "ellipse", "depth"), each = 100))
     
     # Plotting
-    g_min <- plot_data(data_min)
-    g_max <- plot_data(data_max)
-    g_median <- plot_data(data_median)
+    g_min <- plot_real_estimate(real, ellipse_min, depth_min)
+    g_max <- plot_real_estimate(real, ellipse_max, depth_max)
+    g_median <- plot_real_estimate(real, ellipse_median, depth_median)
     
     ggsave(paste0("summary-data/figures-min/", filename, ".jpg"),
            plot = g_min, width = 7, height = 7, dpi = 1000)

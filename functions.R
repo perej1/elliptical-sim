@@ -256,12 +256,18 @@ compute_error <- function(real, estimate, m_radius, f) {
 }
 
 
-#' Plot estimates and real region
+#' Plot estimates and real region together for one setting
 #'
-#' @param data Preprocessed data to plot, see summarise.R for preprocessing.
+#' @param real m_angle by 2 data frame, theoretical quantile region.
+#' @param ellipse m_angle by 2 data frame, elliptical estimate.
+#' @param depth m_angle by 2 data frame, depth estimate.
 #'
 #' @return The ggplot object.
-plot_data <- function(data) {
+plot_real_estimate <- function(real, ellipse, depth) {
+  m_angle <- nrow(real)
+  data <- bind_rows(real, ellipse, depth) %>%
+    mutate(group = rep(c("real", "ellipse", "depth"), each = m_angle))
+  
   ggplot(data, aes(x = x, y = y)) +
     geom_path(aes(group = group, linetype = group), show.legend = FALSE) +
     coord_fixed() +
