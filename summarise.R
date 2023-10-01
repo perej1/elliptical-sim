@@ -17,8 +17,8 @@ args_skew <- args %>%
 
 # Compute min, max and median errors for 2d and 3d cases.
 # Produce corresponding figures for the 2d case.
+# Save medians for the 3d cases.
 for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
-  # Read error data
   arg <- rbind(args_3d, args_2d)[i, ]
   filename <- paste0("type_", arg$type,
                      "_s_", arg$s,
@@ -30,7 +30,6 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
   errors <- readr::read_csv(paste0("sim-data/errors/", filename, ".csv"),
                             show_col_types = FALSE)
   
-  # Construct table of median, max and min errors and write data
   mins <- apply(errors, 2, min, na.rm = TRUE)
   maxs <- apply(errors, 2, max, na.rm = TRUE)
   medians <- apply(errors, 2, median, na.rm = TRUE)
@@ -43,7 +42,6 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
   }
   
   if (arg$d == 2) {
-    # Read data corresponding estimates and theoretical quantile regions
     elliptical_estimates <- readr::read_csv(paste0("sim-data/elliptical-estimates/",
                                                    filename, ".csv"),
                                             show_col_types = FALSE)
@@ -58,7 +56,6 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
     real <- readr::read_csv(paste0("sim-data/real-regions/", filename_real),
                             show_col_types = FALSE)
     
-    # Extract estimates corresponding to min, max and median errors.
     ellipse_min <- elliptical_estimates %>%
       select(num_range(c("x", "y"), which.min(errors$elliptical))) %>%
       rename(x = 1, y = 2)
@@ -83,7 +80,6 @@ for (i in 1:(nrow(args_2d) + nrow(args_3d))) {
       ) %>%
       rename(x = 1, y = 2)
     
-    # Plotting
     g_min <- plot_real_estimate(real, ellipse_min, depth_min)
     g_max <- plot_real_estimate(real, ellipse_max, depth_max)
     g_median <- plot_real_estimate(real, ellipse_median, depth_median)
@@ -109,7 +105,6 @@ for (i in 1:nrow(args_skew_no_p)) {
   estimate_list <- vector("list", length(p))
   real_list <- vector("list", length(p))
   
-  # Read sample
   filename_sample <- paste0("type_", arg$type,
                             "_s_", arg$s,
                             "_d_", arg$d,
@@ -120,7 +115,6 @@ for (i in 1:nrow(args_skew_no_p)) {
     rename(x = x1, y = y1)
   
   for (j in seq_along(p)) {
-    # Read theoretical quantile and elliptical estimate
     filename_real <- paste0("type_", arg$type,
                             "_d_", arg$d,
                             "_n_", arg$n,
@@ -196,7 +190,7 @@ for (i in 1:nrow(args_3d_no_pn)) {
                                show_col_types = FALSE) %>%
         select(depth)
       
-      g <- boxplot_errors(elliptical, depth, arg$s)
+      g <- boxplot_errors(elliptical, depth)
       
       filename <- paste0("type_", arg$type,
                          "_s_", arg$s,

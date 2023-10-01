@@ -1,5 +1,4 @@
 # All the needed packages and helper functions
-library(optparse)
 library(ggplot2)
 suppressPackageStartupMessages(library(dplyr))
 
@@ -25,7 +24,7 @@ spherical_to_cartesian <- function(radius, theta) {
 }
 
 
-#' Generate m uniformly distributed points on a (d - 1)-sphere
+#' Generate m points from a (d - 1)-sphere
 #'
 #' @param d Integer, dimension of the ball, must be equal to or greater than 2.
 #' @param m_angle Integer, number of points to return.
@@ -85,8 +84,8 @@ tdist_extreme_region <- function(sigma, gamma, p, m_angle) {
 
 #' Estimate elliptical extreme quantile region
 #'
-#' Consistent for heavy-tailed elliptical distributions under some other
-#' technical assumptions.
+#' Consistent for heavy-tailed elliptical distributions under some technical
+#' assumptions.
 #'
 #' @param data Double matrix of observations, each row represents one
 #'   observation.
@@ -96,7 +95,8 @@ tdist_extreme_region <- function(sigma, gamma, p, m_angle) {
 #' @param k Integer, threshold for the sample from the tail.
 #' @param m_angle Integer, number of points to return.
 #'
-#' @return Double matrix, m points from the boundary of the quantile region.
+#' @return Double matrix, m_angle points from the boundary of the quantile
+#'   region.
 elliptical_extreme_qregion <- function(data, mu_est, sigma_est, p, k, m_angle) {
   n <- nrow(data)
   d <- ncol(data)
@@ -199,7 +199,8 @@ skew_t_contour_beta <- function(mu, sigma, gamma, alpha, beta, m_angle) {
 #' @param p Double, probability mass in quantile region.
 #' @param m_angle Integer, number of points to return.
 #'
-#' @return Double matrix, m points from the boundary of the quantile region.
+#' @return Double matrix, m_angle points from the boundary of the quantile
+#'   region.
 skew_t_contour_p <- function(mu, sigma, gamma, alpha, p, m_angle) {
   n <- 2 * ceiling(1 / p)
   f_sample <- apply(sn::rmst(n, mu, sigma, alpha, 1 / gamma), 1,
@@ -209,7 +210,7 @@ skew_t_contour_p <- function(mu, sigma, gamma, alpha, p, m_angle) {
 }
 
 
-#' Calculate estimation error for elliptical extreme quantile region estimate
+#' Compute estimation error for elliptical extreme quantile region estimate
 #'
 #' Estimate \eqn{\mathbb{P}(X \in Q \triangle \hat Q)}, where \eqn{Q}
 #' is the theoretical quantile region and \eqn{\hat Q} is the estimate.
@@ -227,8 +228,7 @@ compute_error <- function(real, estimate, m_radius, f) {
   d <- ncol(real)
   ball <- get_ball_mesh(d, m_angle)
   if (m_angle != nrow(estimate)) {
-    rlang::abort(paste0("`real`, `estimate`, and `ball` must have the ",
-                        "same amount of points."))
+    rlang::abort("`real` and `estimate` must have the number of rows")
   }
   res <- 0
 
@@ -258,9 +258,9 @@ compute_error <- function(real, estimate, m_radius, f) {
 
 #' Plot estimates and real region together for one setting
 #'
-#' @param real m_angle by 2 data frame, theoretical quantile region.
-#' @param ellipse m_angle by 2 data frame, elliptical estimate.
-#' @param depth m_angle by 2 data frame, depth estimate.
+#' @param real m_angle by 2 tibble, theoretical quantile region.
+#' @param ellipse m_angle by 2 tibble, elliptical estimate.
+#' @param depth m_angle by 2 tibble, depth based estimate.
 #'
 #' @return The ggplot object.
 plot_real_estimate <- function(real, ellipse, depth) {
@@ -285,6 +285,17 @@ plot_real_estimate <- function(real, ellipse, depth) {
 }
 
 
+#' Plot estimate and theoretical quantile regions for different values of p.
+#'
+#' @param sample tibble of observations, one row represent one observation.
+#' @param real_list List of tibbles, one element of the list represents
+#'   theoretical quantile region corresponding a specific probability.
+#' @param estimate_list List of tibbles, one element of the list represents
+#'   estimated quantile region corresponding a specific probability.
+#' @param p Vector of strings, labels for different values of probabilities
+#'   corresponding to quantile regions.
+#'
+#' @return The ggplot object.
 plot_sample_and_estimates <- function(sample, real_list, estimate_list, p) {
   m_angle <- nrow(real_list[[1]])
   estimates <- bind_rows(estimate_list) %>%
@@ -315,7 +326,16 @@ plot_sample_and_estimates <- function(sample, real_list, estimate_list, p) {
 }
 
 
-boxplot_errors <- function(elliptical, depth, s) {
+#' Boxplot errors for elliptical and depth based estimator for one scenario.
+#'
+#' @param elliptical s times one tibble, errors for elliptical estimator for s
+#'   repetitions of one simulation scenario.
+#' @param depth s times one tibble, errors for depth based estimator for s
+#'   repetitions of one simulation scenario.
+#'
+#' @return The ggplot object.
+boxplot_errors <- function(elliptical, depth) {
+  s <- nrow(elliptical)
   elliptical <- rename(elliptical, err = 1)
   depth <- rename(depth, err = 1)
   data <- rbind(elliptical, depth) %>%

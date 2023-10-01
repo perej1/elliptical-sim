@@ -1,4 +1,5 @@
 # Perform simulation for one scenario.
+library(optparse)
 source("functions.R")
 
 option_list <- list(
