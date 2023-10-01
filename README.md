@@ -5,17 +5,10 @@ estimation. Current simulation settings serve two different purposes:
 
 1. Performance of an elliptical extreme quantile region estimator is compared to
 a competing extreme quantile region estimator based on halfspace depth [1].
-Relative errors for both estimators are computed for each simulation scenario,
-and the errors are saved in the directory `sim-data/errors/`. Additionally,
-directory `sim-data/` includes the following data for reproducibility:
-
-   - true quantile regions,
-   - estimates (elliptical and depth) and
-   - samples, from which the estimates are calculated.
-
-   On the other hand, directory `summmary-data/` includes some summary
-statistics for relative errors of each scenario. Also, illustrative figures are
-included.
+Relative errors for both estimators are computed for each simulation scenario.
+However, simulation data is not stored in Github since files are too large. On
+the other hand, directory `summmary-data/` includes some summary statistics for
+relative errors of each scenario. Also, illustrative figures are included.
 
 2. An example with skewed t-distribution is constructed. Here we use elliptical
 extreme quantile region estimator for estimation, and thus, estimated quantile
