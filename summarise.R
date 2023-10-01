@@ -159,7 +159,6 @@ args_3d_no_pn <- args_3d %>%
   distinct()
 
 for (i in 1:nrow(args_3d_no_pn)) {
-  error_list <- vector("list", length(p) * length(n))
   arg <- args_3d_no_pn[i, ]
   for (j1 in seq_along(p)) {
     for (j2 in seq_along(n)) {

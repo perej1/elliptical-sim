@@ -339,7 +339,14 @@ boxplot_errors <- function(elliptical, depth) {
   elliptical <- rename(elliptical, err = 1)
   depth <- rename(depth, err = 1)
   data <- rbind(elliptical, depth) %>%
-    mutate(group = rep(c("Elliptical", "Depth"), each = s))
+    mutate(group = ordered(rep(c("Elliptical", "Depth"), each = s),
+                           levels = c("Elliptical", "Depth")))
   g <- ggplot(data, aes(x = group, y = err)) +
-    geom_boxplot()
+    geom_boxplot() +
+    theme(axis.title = element_blank(),
+          panel.background = element_blank(),
+          legend.background = element_blank(),
+          legend.key = element_blank(),
+          legend.key.size = unit(1, "cm"),
+          axis.text = element_text(size = 15))
 }
