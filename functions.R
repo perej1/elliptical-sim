@@ -210,7 +210,7 @@ skew_t_contour_p <- function(mu, sigma, gamma, alpha, p, m_angle) {
 }
 
 
-#' Compute estimation error for elliptical extreme quantile region estimate
+#' Compute estimation error for extreme quantile region estimate
 #'
 #' Estimate \eqn{\mathbb{P}(X \in Q \triangle \hat Q)}, where \eqn{Q}
 #' is the theoretical quantile region and \eqn{\hat Q} is the estimate.
@@ -253,6 +253,47 @@ compute_error <- function(real, estimate, m_radius, f) {
     res <- res + abs(r_real[i_real] - r_estimate[i_estimate]) * resi
   }
   2 * pi^(d - 1) / (m_angle * m_radius) * sum(res)
+}
+
+#' Compute conservative estimation error for elliptical extreme quantile region
+#'  estimate
+#'
+#' Give upper bound for \eqn{\mathbb{P}(X \in Q \triangle \hat Q)} / p,
+#' where \eqn{Q} is the theoretical quantile region and \eqn{\hat Q} is the
+#' estimate. Works only when the underlying distribution is the standard
+#' t-distribution with alpha degrees of freedom, \eqn{\hat Q} is the
+#' elliptical quantile estimator and \eqn{\hat Q} is subset of \eqn{Q} or vice
+#' versa.
+#'
+#' @param sigma_hat Double matrix, estimated scatter matrix.
+#' @param r_hat Double, estimated quantile of the generating variate.
+#' @param alpha Integer, degrees of freedom for the t-distribution.
+#' @param p Double, Probability corresponding to the quantile region.
+#'
+#' @return Double, conservative estimation error.
+compute_error_elliptical <- function(sigma_hat, r_hat, alpha, p) {
+  d <- ncol(sigma_hat)
+  sigma <- diag(d)
+  
+  # (1-p)-quantile off the generating variate
+  r <- sqrt(d * stats::qf(1 - p, d, alpha))
+  
+  # Check if estimate is subset of theoretical or vice versa
+  sigma_hat_mapped_axis_len <- eigen(r^(-2) * r_hat^2 * sigma_hat)$values
+  
+  if (all(sigma_hat_mapped_axis_len >= 1)) {
+    # estimate inside theoretical
+    r_tilde_squared <- r_hat^2 * (norm(sigma_hat, type = "2") *
+                                    norm(sigma - solve(sigma_hat), type = "2") + 1)
+    1 - stats::pf(r_tilde_squared / d, d, alpha, lower.tail = FALSE) / p
+    
+  } else if (all(sigma_hat_mapped_axis_len <= 1)) {
+    # theoretical inside estimate
+    r_tilde_squared <- r_hat^2 / (norm(sigma - solve(sigma_hat), type = "2") + 1)
+    stats::pf(r_tilde_squared / d, d, alpha, lower.tail = FALSE) / p - 1
+  } else {
+    NA
+  }
 }
 
 
