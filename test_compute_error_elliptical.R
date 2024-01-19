@@ -14,9 +14,24 @@ test_that("Error computed correctly when scatter is perfectly estimated", {
         sigma_hat <- diag(d_i)
         r_hat <- sqrt(d_i * stats::qf(1 - p_wrong_i, d_i, alpha_i))
         err_est <- compute_error_elliptical(sigma_hat, r_hat, alpha_i, p)
-        print(err_est)
-        print(abs(p - p_wrong_i) / p)
         expect_equal(abs(p - p_wrong_i) / p, err_est)
+      }
+    }
+  }
+})
+
+test_that("Scaling does not change results", {
+  scale <- c(0.5, 2)
+  for (alpha_i in alpha) {
+    for (p_wrong_i in p_wrong) {
+      for (d_i in d) {
+        for (scale_i in scale) {
+          sigma_hat <- diag(d_i)
+          r_hat <- sqrt(d_i * stats::qf(1 - p_wrong_i, d_i, alpha_i))
+          err_est <- compute_error_elliptical(scale_i^(-2) * sigma_hat,
+                                              scale_i * r_hat, alpha_i, p)
+          expect_equal(abs(p - p_wrong_i) / p, err_est)
+        }
       }
     }
   }
@@ -35,8 +50,6 @@ test_that("Error behaves ok when scatter estimate is close to theoretical", {
           sigma_hat <- diag(d_i) + e_i * d_reverse
           r_hat <- sqrt(d_i * stats::qf(1 - p_wrong_i, d_i, alpha_i))
           err_est <- compute_error_elliptical(sigma_hat, r_hat, alpha_i, p)
-          print(err_est)
-          print(abs(p - p_wrong_i) / p)
           expect_equal(abs(p - p_wrong_i) / p, err_est, tol = 0.4)
         }
       }
