@@ -273,24 +273,22 @@ compute_error <- function(real, estimate, m_radius, f) {
 #' @return Double, conservative estimation error.
 compute_error_elliptical <- function(sigma_hat, r_hat, alpha, p) {
   d <- ncol(sigma_hat)
-  sigma <- diag(d)
-  
-  # (1-p)-quantile off the generating variate
+
+  # (1-p)-quantile of the generating variate
   r <- sqrt(d * stats::qf(1 - p, d, alpha))
-  
-  # Check if estimate is subset of theoretical or vice versa
-  sigma_hat_mapped_axis_len <- eigen(r^(-2) * r_hat^2 * sigma_hat)$values
-  
-  if (all(sigma_hat_mapped_axis_len >= 1)) {
+
+  hat_axis_len_squared <- eigen(r_hat^2 * sigma_hat)$values
+  if (all(hat_axis_len_squared >= r^2)) {
     # estimate inside theoretical
-    r_tilde_squared <- r_hat^2 * (norm(sigma_hat, type = "2") *
-                                    norm(sigma - solve(sigma_hat), type = "2") + 1)
-    1 - stats::pf(r_tilde_squared / d, d, alpha, lower.tail = FALSE) / p
-    
-  } else if (all(sigma_hat_mapped_axis_len <= 1)) {
+    p_r <- stats::pf(max(hat_axis_len_squared) / d, d, alpha,
+                     lower.tail = FALSE)
+    1 -  p_r / p
+  
+  } else if (all(hat_axis_len_squared <= r^2)) {
     # theoretical inside estimate
-    r_tilde_squared <- r_hat^2 / (norm(sigma - solve(sigma_hat), type = "2") + 1)
-    stats::pf(r_tilde_squared / d, d, alpha, lower.tail = FALSE) / p - 1
+    p_r <- stats::pf(min(hat_axis_len_squared) / d, d, alpha,
+                     lower.tail = FALSE)
+    p_r / p - 1
   } else {
     NA
   }
