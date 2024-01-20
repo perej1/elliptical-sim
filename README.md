@@ -4,21 +4,25 @@ Simulation study for an article about multivariate extreme quantile region
 estimation. Current simulation settings serve three different purposes:
 
 1. Performance of an elliptical extreme quantile region estimator is compared to
-a competing extreme quantile region estimator based on halfspace depth [1].
-Relative errors for both estimators are computed for each simulation scenario.
-However, simulation data is not stored in Github since files are too large. On
-the other hand, directory `summmary-data/` includes some summary statistics for
-relative errors of each scenario. Also, illustrative figures are included.
+   a competing extreme quantile region estimator based on halfspace depth [1].
+   Relative errors for both estimators are computed for each simulation
+   scenario. However, simulation data is not stored in Github since files are
+   too large. On the other hand, directory `summmary-data/` includes some
+   summary statistics for relative errors of each scenario. Also, illustrative
+   figures are included.
 
-2. An example with skewed t-distribution is constructed. Here we use elliptical
-extreme quantile region estimator for estimation, and thus, estimated quantile
-regions have an elliptical shape, even though true quantile regions are not
-elliptically shaped. For the skewed t-distribution we repeat each scenario once.
-Thus, summary statistics are not relevant here, but illustrative figures are in
-the directory `summary-data/figures-skew/`.
+2. Performance of the elliptical extreme quantile region estimator is examined
+   in high dimensional cases. Conservative estimates of the relative errors are
+   stored in the directory `high-dim-data/data/`. On the other hand, figures
+   about how the relative error fluctuates as dimension changes are stored in
+   the directory `high-dim-data/figures/`.
 
-3. Performance of the elliptical extreme quantile region estimator is examined
-   in high dimensional cases. Conservative estimates of the relative errors are stored in the directory `high-dim-data/data/`. On the other hand, figures about how the relative error fluctuates when dimension changes are stored in the directory `high-dim-data/figures/`.
+3. An example with a skewed t-distribution is constructed. Here we use the
+   elliptical extreme quantile region estimator for estimation, and thus,
+   estimated quantile regions have an elliptical shape, even though true
+   quantile regions are not elliptically shaped. For the skewed t-distribution
+   we repeat each scenario once. Thus, summary statistics are not relevant here,
+   but illustrative figures are in the directory `summary-data/figures-skew/`.
 
 ## Requirements
 
