@@ -19,7 +19,7 @@ estimation. Current simulation settings serve three different purposes:
 
 3. An example with a skewed t-distribution is constructed. Here we use the
    elliptical extreme quantile region estimator for estimation, and thus,
-   estimated quantile regions have an elliptical shape, even though true
+   the estimated quantile regions have an elliptical shape, even though the true
    quantile regions are not elliptically shaped. For the skewed t-distribution
    we repeat each scenario once. Thus, summary statistics are not relevant here,
    but illustrative figures are in the directory `summary-data/figures-skew/`.
@@ -57,7 +57,7 @@ In total there are eight scripts.
   `compute_error_elliptical.R`.
 
 With the following command one can run all simulation settings specified by the
-`sim-args.txt`.
+`sim-args.txt` (except high dimensional simulations).
 
 ```
 sbatch sim-batch.slurm
