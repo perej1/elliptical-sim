@@ -295,6 +295,28 @@ compute_error_elliptical <- function(sigma_hat, r_hat, alpha, p) {
 }
 
 
+#' Naive error computation
+#'
+#' Compute distances between theoretical region and the estimate in coordinate
+#' axes. Return mean of all the distances.
+#'
+#' @param sigma_hat Double matrix, estimated scatter matrix.
+#' @param r_hat Double, estimated quantile of the generating variate.
+#' @param alpha Integer, degrees of freedom for the t-distribution.
+#' @param p Double, Probability corresponding to the quantile region.
+#'
+#' @return Double, naive error.
+compute_error_axes <- function(sigma_hat, r_hat, alpha, p) {
+  d <- ncol(sigma)
+
+  # (1-p)-quantile of the generating variate
+  r <- sqrt(d * stats::qf(1 - p, d, alpha))
+
+  inv_hat <- solve(sigma_hat)
+  mean(abs(r - r_hat / sqrt(diag(inv_hat))))
+}
+
+
 #' Plot estimates and real region together for one setting
 #'
 #' @param real m_angle by 2 tibble, theoretical quantile region.
