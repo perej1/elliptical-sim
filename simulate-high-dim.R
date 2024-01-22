@@ -39,7 +39,10 @@ simulate <- function(s, d, n, p, k, seed) {
               rlang::abort("Invalid value of k")
   )
 
-  simulate_round <- function(i) {
+  error_elliptical <- rep(NA, s)
+  error_naive <- rep(NA, s)
+  set.seed(seed)
+  for (i in 1:s) {
     # Generate sample
     data <- mvtnorm::rmvt(n, sigma, 1 / gamma, mu)
 
@@ -55,14 +58,17 @@ simulate <- function(s, d, n, p, k, seed) {
     r_hat <- radius_sort[n - k] * (k / (n * p))^gamma_est
 
     # Compute conservative estimate for the error
-    compute_error_elliptical(est$cov, r_hat, 1 / gamma, p)
+    error_elliptical[i] <- compute_error_elliptical(est$cov, r_hat, 1 / gamma,
+                                                    p)
+    error_naive[i] <- compute_error_axes(est$cov, r_hat, 1 / gamma, p)
   }
 
   # Compute median error from s repetitions and the number of NAs
   set.seed(seed)
-  error <- purrr::map_dbl(1:s, simulate_round)
 
-  list(error_med = median(error, na.rm = TRUE), num_na = sum(is.na(error)))
+  list(error_naive_med = median(error_naive, na.rm = TRUE),
+       error_elliptical_med = median(error_elliptical, na.rm = TRUE),
+       num_na = sum(is.na(error_elliptical)))
 }
 
 
@@ -80,7 +86,7 @@ plot_and_save <- function(n, k, p) {
   # Set parameter values
   seed <- 278
   s <- 100
-  d <- 2:30
+  d <- 2:10
 
   # Computation of errors for each parameter combination
   errors <- expand.grid(s = s, d = d, n = n, p = p, k = k, seed = seed,
@@ -90,30 +96,42 @@ plot_and_save <- function(n, k, p) {
     tidyr::unnest_wider(median_err)
 
   # Plotting
-  g <- ggplot(errors, aes(d, error_med)) +
+  theme <- theme(axis.title = element_text(size = 15),
+                 panel.background = element_rect(fill = "white"),
+                 panel.grid.major = element_line(colour = "grey"),
+                 panel.grid.minor = element_line(colour = "grey"),
+                 axis.line = element_line(colour = "black"),
+                 legend.background = element_blank(),
+                 legend.key = element_blank(),
+                 legend.key.size = unit(1, "cm"),
+                 legend.text = element_text(size = 15),
+                 axis.text = element_text(size = 15))
+
+  g1 <- ggplot(errors, aes(d, error_elliptical_med)) +
     geom_point() +
     geom_line() +
     ylim(0, NA) +
     scale_x_continuous(breaks = seq(d[1], d[length(d)], by = 4)) +
-    theme(axis.title = element_text(size = 15),
-          panel.background = element_rect(fill = "white"),
-          panel.grid.major = element_line(colour = "grey"),
-          panel.grid.minor = element_line(colour = "grey"),
-          axis.line = element_line(colour = "black"),
-          legend.background = element_blank(),
-          legend.key = element_blank(),
-          legend.key.size = unit(1, "cm"),
-          legend.text = element_text(size = 15),
-          axis.text = element_text(size = 15)) +
+    theme +
     xlab("Dimension") +
     ylab("Relative error")
+  g2 <- ggplot(errors, aes(d, error_naive_med)) +
+    geom_point() +
+    geom_line() +
+    ylim(0, NA) +
+    scale_x_continuous(breaks = seq(d[1], d[length(d)], by = 4)) +
+    theme +
+    xlab("Dimension") +
+    ylab("Naive error")
 
   # Save data and the figure
   filename <- stringr::str_c("n_", n, "_k_", k, "_p_", p)
   readr::write_csv(errors,
                    stringr::str_c("high-dim-data/data/", filename, ".csv"))
-  ggsave(stringr::str_c("high-dim-data/figures/", filename, ".jpg"),
-         plot = g, dpi = 1000, width = 7, height = 7)
+  ggsave(stringr::str_c("high-dim-data/figures/", "elliptical_", filename, ".jpg"),
+         plot = g1, dpi = 1000, width = 7, height = 7)
+  ggsave(stringr::str_c("high-dim-data/figures/", "naive_", filename, ".jpg"),
+         plot = g2, dpi = 1000, width = 7, height = 7)
 }
 
 n <- c(1000, 5000)
