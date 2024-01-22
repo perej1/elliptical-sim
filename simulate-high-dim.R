@@ -58,8 +58,7 @@ simulate <- function(s, d, n, p, k, seed) {
     r_hat <- radius_sort[n - k] * (k / (n * p))^gamma_est
 
     # Compute conservative estimate for the error
-    error_elliptical[i] <- compute_error_elliptical(est$cov, r_hat, 1 / gamma,
-                                                    p)
+    error_elliptical[i] <- compute_error_elliptical(est$cov, r_hat, 1 / gamma, p)
     error_naive[i] <- compute_error_axes(est$cov, r_hat, 1 / gamma, p)
   }
 
@@ -86,7 +85,7 @@ plot_and_save <- function(n, k, p) {
   # Set parameter values
   seed <- 278
   s <- 100
-  d <- 2:10
+  d <- 2:30
 
   # Computation of errors for each parameter combination
   errors <- expand.grid(s = s, d = d, n = n, p = p, k = k, seed = seed,

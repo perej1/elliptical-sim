@@ -307,7 +307,7 @@ compute_error_elliptical <- function(sigma_hat, r_hat, alpha, p) {
 #'
 #' @return Double, naive error.
 compute_error_axes <- function(sigma_hat, r_hat, alpha, p) {
-  d <- ncol(sigma)
+  d <- ncol(sigma_hat)
 
   # (1-p)-quantile of the generating variate
   r <- sqrt(d * stats::qf(1 - p, d, alpha))
