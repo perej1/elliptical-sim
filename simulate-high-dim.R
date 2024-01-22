@@ -94,6 +94,17 @@ plot_and_save <- function(n, k, p) {
     geom_point() +
     geom_line() +
     ylim(0, NA) +
+    scale_x_continuous(breaks = seq(d[1], d[length(d)], by = 4)) +
+    theme(axis.title = element_text(size = 15),
+          panel.background = element_rect(fill = "white"),
+          panel.grid.major = element_line(colour = "grey"),
+          panel.grid.minor = element_line(colour = "grey"),
+          axis.line = element_line(colour = "black"),
+          legend.background = element_blank(),
+          legend.key = element_blank(),
+          legend.key.size = unit(1, "cm"),
+          legend.text = element_text(size = 15),
+          axis.text = element_text(size = 15)) +
     xlab("Dimension") +
     ylab("Relative error")
 
@@ -102,7 +113,7 @@ plot_and_save <- function(n, k, p) {
   readr::write_csv(errors,
                    stringr::str_c("high-dim-data/data/", filename, ".csv"))
   ggsave(stringr::str_c("high-dim-data/figures/", filename, ".jpg"),
-         plot = g, width = 7, height = 7, dpi = 1000)
+         plot = g, dpi = 1000, width = 7, height = 7)
 }
 
 n <- c(1000, 5000)
