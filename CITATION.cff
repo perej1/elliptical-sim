@@ -1,9 +1,0 @@
-cff-version: 0.1.0
-message: "If you use this software, please cite it as below."
-authors:
-- family-names: "Pere"
-  given-names: "Jaakko"
-title: "elliptical-sim"
-version: 0.4.0
-date-released: "2024-01-23"
-url: "https://github.com/perej1/elliptical-sim/releases/tag/v0.4.0"
